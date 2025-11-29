@@ -1,73 +1,74 @@
-# React + TypeScript + Vite
+# Grocermator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Grocermator is a smart, client-side grocery planning application designed to minimize food waste. It helps you manage recipes, generate optimized meal plans that prioritize perishable ingredients, and create efficient shopping lists.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Smart Meal Planning**: Generates plans that prioritize perishable ingredients and group recipes with shared ingredients to minimize waste.
+- **Recipe Management**: Add, edit, and delete recipes with support for fractional quantities, instructions, and images.
+- **Shopping List**: Automatically aggregates ingredients from your meal plan.
+- **PWA Support**: Installable on mobile/desktop and works offline.
+- **Data Privacy**: All data is stored locally in your browser. Import/Export functionality allows for backups.
 
-## React Compiler
+## Running Locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+To run the application on your local machine:
 
-## Expanding the ESLint configuration
+1. **Clone the repository**:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+    ```bash
+    git clone <repository-url>
+    cd grocermator
+    ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. **Install dependencies**:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+    ```bash
+    npm install
+    ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. **Start the development server**:
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+    ```bash
+    npm run dev
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+4. **Open in browser**:
+    Navigate to `http://localhost:5173` (or the URL shown in your terminal).
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Deployment
+
+This application is designed to be deployed to **GitHub Pages**.
+
+### Automatic Deployment (Script)
+
+We have provided a convenience script to deploy directly to GitHub Pages.
+
+1. **Run the deploy script**:
+
+    ```bash
+    npm run deploy
+    ```
+
+    *Note: This script builds the project and pushes the `dist` folder to the `gh-pages` branch of your repository.*
+
+### Manual Deployment
+
+If you prefer to deploy manually:
+
+1. **Build the project**:
+
+    ```bash
+    npm run build
+    ```
+
+2. **Deploy the `dist` folder**:
+    Push the contents of the `dist` folder to your hosting provider (e.g., GitHub Pages, Netlify, Vercel).
+
+## PWA Notes
+
+This app is a Progressive Web App (PWA).
+
+- **Icons**: App icons are located in `public/`.
+- **Manifest**: Configuration is in `vite.config.ts`.
+- **Offline**: Service worker is generated at build time.

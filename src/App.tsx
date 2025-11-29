@@ -5,14 +5,16 @@ import { MealPlanner } from './components/MealPlanner';
 import { ShoppingList } from './components/ShoppingList';
 import { IngredientManager } from './components/IngredientManager';
 import { PantryManager } from './components/PantryManager';
+import { ImportPreview } from './components/ImportPreview';
 import { ChefHat, Calendar, Download, Upload, Star, Smartphone, Package } from 'lucide-react';
-import type { Recipe } from './types';
+import type { Recipe, AppData } from './types';
 
 const AppContent: React.FC = () => {
-  const { exportData, importData } = useData();
+  const { exportData, importData, recipes, ingredients } = useData();
   const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list' | 'ingredients' | 'pantry'>('recipes');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
+  const [importPreviewData, setImportPreviewData] = useState<AppData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -42,12 +44,36 @@ const AppContent: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        const stats = await importData(file);
-        alert(`Data imported successfully!\n\nRecipes: ${stats.recipeCount}\nMeal Plans: ${stats.mealPlanCount}\nIngredients: ${stats.ingredientCount}\nPantry Items: ${stats.pantryCount}`);
+        // Read and parse the file
+        const text = await file.text();
+        const data: AppData = JSON.parse(text);
+        // Show preview instead of directly importing
+        setImportPreviewData(data);
       } catch (err) {
-        alert('Failed to import data: ' + err);
+        alert('Failed to read file: ' + err);
+      }
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
+  };
+
+  const handleImportConfirm = async (data: AppData) => {
+    try {
+      // Create a temporary file from the data
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const file = new File([blob], 'import.json', { type: 'application/json' });
+      const stats = await importData(file);
+      alert(`Data imported successfully!\n\nRecipes: ${stats.recipeCount}\nMeal Plans: ${stats.mealPlanCount}\nIngredients: ${stats.ingredientCount}\nPantry Items: ${stats.pantryCount}`);
+      setImportPreviewData(null);
+    } catch (err) {
+      alert('Failed to import data: ' + err);
+    }
+  };
+
+  const handleImportCancel = () => {
+    setImportPreviewData(null);
     // Reset input
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -181,6 +207,17 @@ const AppContent: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Import Preview Modal */}
+      {importPreviewData && (
+        <ImportPreview
+          importData={importPreviewData}
+          existingRecipes={recipes}
+          existingIngredients={ingredients}
+          onConfirm={handleImportConfirm}
+          onCancel={handleImportCancel}
+        />
+      )}
     </div>
   );
 };

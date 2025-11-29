@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { generateMealPlan } from '../utils/planner';
 import { scaleRecipe } from '../utils/recipeScaling';
-import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays, Users } from 'lucide-react';
+import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays, Users, BookOpen, X } from 'lucide-react';
+import type { Recipe } from '../types';
 
 export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> = ({ onSelectPlan }) => {
     const { recipes, mealPlans, addMealPlan, deleteMealPlan, updateMealPlan } = useData();
@@ -11,6 +12,7 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
     const [allowRepeats, setAllowRepeats] = useState(false);
     const [seasonalOnly, setSeasonalOnly] = useState(false);
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [cookingModeRecipe, setCookingModeRecipe] = useState<Recipe | null>(null);
 
     const handleGenerate = () => {
         const plan = generateMealPlan(recipes, {
@@ -164,17 +166,27 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                                                 {r.name}
                                             </span>
 
-                                            <div className="flex items-center gap-1 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
-                                                <Users size={12} />
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    max="20"
-                                                    className="w-8 bg-transparent text-center focus:outline-none focus:text-white"
-                                                    value={r.servings}
-                                                    onChange={(e) => handleUpdateServings(plan.id, idx, parseInt(e.target.value) || 1)}
-                                                />
-                                                <span>servings</span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setCookingModeRecipe(r)}
+                                                    className="text-blue-400 hover:text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="View Instructions"
+                                                >
+                                                    <BookOpen size={16} />
+                                                </button>
+
+                                                <div className="flex items-center gap-1 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                                                    <Users size={12} />
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        max="20"
+                                                        className="w-8 bg-transparent text-center focus:outline-none focus:text-white"
+                                                        value={r.servings}
+                                                        onChange={(e) => handleUpdateServings(plan.id, idx, parseInt(e.target.value) || 1)}
+                                                    />
+                                                    <span>servings</span>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -191,6 +203,63 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                     </div>
                 )}
             </div>
+
+            {/* Cooking Mode - Full Screen Instructions */}
+            {cookingModeRecipe && (
+                <div className="fixed inset-0 bg-gray-950 z-[200] overflow-y-auto">
+                    <div className="min-h-screen p-6 md:p-12">
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-8">
+                            <div>
+                                <h1 className="text-4xl md:text-5xl font-bold mb-2">{cookingModeRecipe.name}</h1>
+                                <p className="text-xl text-gray-400">
+                                    {cookingModeRecipe.servings} servings
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setCookingModeRecipe(null)}
+                                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                            >
+                                <X size={32} />
+                            </button>
+                        </div>
+
+                        {/* Ingredients */}
+                        <div className="mb-12">
+                            <h2 className="text-3xl font-bold mb-6 text-blue-400">Ingredients</h2>
+                            <div className="space-y-3">
+                                {cookingModeRecipe.ingredients.map((ing, idx) => (
+                                    <div key={idx} className="flex items-baseline gap-4 text-xl">
+                                        <span className="font-mono text-gray-500 w-8">•</span>
+                                        <span className="font-bold text-blue-300 w-20 text-right">
+                                            {ing.quantity}
+                                        </span>
+                                        <span className="text-gray-400 w-24">{ing.unit}</span>
+                                        <span className="flex-1">{ing.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Instructions */}
+                        <div>
+                            <h2 className="text-3xl font-bold mb-6 text-green-400">Instructions</h2>
+                            <div className="space-y-6">
+                                {(cookingModeRecipe.instructions || '').split('\n').filter(line => line.trim()).map((step, idx) => (
+                                    <div key={idx} className="flex gap-6">
+                                        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-xl font-bold">
+                                            {idx + 1}
+                                        </div>
+                                        <p className="flex-1 text-2xl leading-relaxed pt-2">
+                                            {step.trim()}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

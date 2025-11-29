@@ -17,6 +17,7 @@ interface DataContextType {
     addIngredient: (ingredient: IngredientEntity) => void;
     updateIngredient: (ingredient: IngredientEntity) => void;
     deleteIngredient: (id: string) => void;
+    mergeIngredients: (fromId: string, toId: string) => void;
     addPantryItem: (item: PantryItem) => void;
     updatePantryItem: (ingredientId: string, item: PantryItem) => void;
     removePantryItem: (ingredientId: string) => void;
@@ -144,6 +145,49 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIngredients(prev => prev.filter(i => i.id !== id));
     };
 
+    const mergeIngredients = (fromId: string, toId: string) => {
+        // Update all recipes to use the target ingredient
+        setRecipes(prev => prev.map(recipe => ({
+            ...recipe,
+            ingredients: recipe.ingredients.map(ing => {
+                // Find if this ingredient references the one being merged
+                const matchingIngredient = ingredients.find(i => i.id === fromId && i.name.toLowerCase() === ing.name.toLowerCase());
+                if (matchingIngredient) {
+                    const targetIngredient = ingredients.find(i => i.id === toId);
+                    return targetIngredient ? { ...ing, name: targetIngredient.name } : ing;
+                }
+                return ing;
+            })
+        })));
+
+        // Update pantry items
+        setPantry(prev => {
+            const fromItem = prev.find(item => item.ingredientId === fromId);
+            const toItem = prev.find(item => item.ingredientId === toId);
+
+            if (fromItem && toItem) {
+                // Merge quantities if both exist
+                return prev
+                    .filter(item => item.ingredientId !== fromId)
+                    .map(item => item.ingredientId === toId
+                        ? { ...item, quantity: item.quantity + fromItem.quantity }
+                        : item
+                    );
+            } else if (fromItem) {
+                // Replace fromId with toId
+                return prev.map(item =>
+                    item.ingredientId === fromId
+                        ? { ...item, ingredientId: toId }
+                        : item
+                );
+            }
+            return prev;
+        });
+
+        // Delete the source ingredient
+        deleteIngredient(fromId);
+    };
+
     const addPantryItem = (item: PantryItem) => {
         setPantry(prev => [...prev, item]);
     };
@@ -210,6 +254,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             addRecipe, updateRecipe, deleteRecipe,
             addMealPlan, updateMealPlan, deleteMealPlan,
             addIngredient, updateIngredient, deleteIngredient,
+            mergeIngredients,
             addPantryItem, updatePantryItem, removePantryItem,
             exportData, importData, togglePlanFavorite
         }}>

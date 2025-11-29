@@ -4,11 +4,13 @@ import { type IngredientEntity, STANDARD_UNITS } from '../types';
 import { Plus, Search, Edit2, Trash2, Save, Package } from 'lucide-react';
 
 export const IngredientManager: React.FC = () => {
-    const { ingredients, addIngredient, updateIngredient, deleteIngredient } = useData();
+    const { ingredients, addIngredient, updateIngredient, deleteIngredient, mergeIngredients } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditing, setIsEditing] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<IngredientEntity | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [showMergeSection, setShowMergeSection] = useState(false);
+    const [mergeTargetId, setMergeTargetId] = useState<string>('');
 
     const filteredIngredients = ingredients.filter(ing =>
         ing.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,6 +51,26 @@ export const IngredientManager: React.FC = () => {
         setIsEditing(null);
         setIsCreating(false);
         setEditForm(null);
+        setShowMergeSection(false);
+        setMergeTargetId('');
+    };
+
+    const handleMerge = () => {
+        if (!editForm || !mergeTargetId) return;
+        if (window.confirm(`Merge "${editForm.name}" into "${ingredients.find(i => i.id === mergeTargetId)?.name}"? This will update all recipes and delete "${editForm.name}".`)) {
+            mergeIngredients(editForm.id, mergeTargetId);
+            cancel();
+        }
+    };
+
+    // Find potential duplicates based on name similarity
+    const getPotentialDuplicates = () => {
+        if (!editForm) return [];
+        const currentName = editForm.name.toLowerCase();
+        return ingredients.filter(ing =>
+            ing.id !== editForm.id &&
+            (ing.name.toLowerCase().includes(currentName) || currentName.includes(ing.name.toLowerCase()))
+        );
     };
 
     return (
@@ -136,6 +158,66 @@ export const IngredientManager: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Merge Section - Only show when editing (not creating) */}
+                        {!isCreating && (
+                            <div className="mt-6 pt-6 border-t border-gray-700">
+                                <button
+                                    onClick={() => setShowMergeSection(!showMergeSection)}
+                                    className="text-sm text-blue-400 hover:text-blue-300 mb-3"
+                                >
+                                    {showMergeSection ? '− Hide' : '+ Merge with another ingredient'}
+                                </button>
+
+                                {showMergeSection && (
+                                    <div className="space-y-3">
+                                        <p className="text-xs text-gray-400">
+                                            Merge this ingredient into another one. All recipes using "{editForm.name}" will be updated.
+                                        </p>
+                                        <div>
+                                            <label className="text-xs text-gray-400 block mb-1">Merge into:</label>
+                                            <select
+                                                className="input w-full"
+                                                value={mergeTargetId}
+                                                onChange={e => setMergeTargetId(e.target.value)}
+                                            >
+                                                <option value="">Select ingredient...</option>
+                                                {getPotentialDuplicates().map(ing => (
+                                                    <option key={ing.id} value={ing.id}>
+                                                        {ing.name} ({ing.category})
+                                                    </option>
+                                                ))}
+                                                <optgroup label="All Ingredients">
+                                                    {ingredients
+                                                        .filter(ing => ing.id !== editForm.id && !getPotentialDuplicates().find(d => d.id === ing.id))
+                                                        .map(ing => (
+                                                            <option key={ing.id} value={ing.id}>
+                                                                {ing.name} ({ing.category})
+                                                            </option>
+                                                        ))
+                                                    }
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        {mergeTargetId && (
+                                            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-3">
+                                                <p className="text-xs text-yellow-400">
+                                                    ⚠️ Warning: "{editForm.name}" will be deleted and all recipes will be updated to use "{ingredients.find(i => i.id === mergeTargetId)?.name}".
+                                                </p>
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={handleMerge}
+                                            disabled={!mergeTargetId}
+                                            className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors w-full"
+                                        >
+                                            Merge Ingredients
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <div className="flex justify-end gap-3 mt-6">
                             <button onClick={cancel} className="btn-secondary">Cancel</button>
                             <button onClick={save} className="btn-primary flex items-center gap-2">

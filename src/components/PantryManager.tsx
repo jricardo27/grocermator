@@ -5,16 +5,24 @@ import { Search, Plus, X, Save, Package, ChevronDown } from 'lucide-react';
 import { unitCategories } from '../utils/units';
 
 export const PantryManager: React.FC = () => {
-    const { pantry, ingredients, addPantryItem, updatePantryItem, removePantryItem } = useData();
+    const { pantry, ingredients, addPantryItem, updatePantryItem, removePantryItem, addIngredient } = useData();
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditing, setIsEditing] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<PantryItem | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [ingredientSearch, setIngredientSearch] = useState('');
+    const [showIngredientDropdown, setShowIngredientDropdown] = useState(false);
+    const [showNewIngredientModal, setShowNewIngredientModal] = useState(false);
+    const [newIngredientName, setNewIngredientName] = useState('');
 
     const filteredPantry = pantry.filter(item => {
         const ingredient = ingredients.find(ing => ing.id === item.ingredientId);
         return ingredient?.name.toLowerCase().includes(searchTerm.toLowerCase());
     });
+
+    const filteredIngredients = ingredients.filter(ing =>
+        ing.name.toLowerCase().includes(ingredientSearch.toLowerCase())
+    );
 
     const startNew = () => {
         setEditForm({
@@ -23,12 +31,15 @@ export const PantryManager: React.FC = () => {
             unit: 'pc',
             addedDate: new Date().toISOString()
         });
+        setIngredientSearch('');
         setIsCreating(true);
         setIsEditing(null);
     };
 
     const startEdit = (item: PantryItem) => {
+        const ingredient = ingredients.find(ing => ing.id === item.ingredientId);
         setEditForm({ ...item });
+        setIngredientSearch(ingredient?.name || '');
         setIsEditing(item.ingredientId);
         setIsCreating(false);
     };
@@ -37,6 +48,8 @@ export const PantryManager: React.FC = () => {
         setEditForm(null);
         setIsEditing(null);
         setIsCreating(false);
+        setIngredientSearch('');
+        setShowIngredientDropdown(false);
     };
 
     const save = () => {
@@ -54,6 +67,44 @@ export const PantryManager: React.FC = () => {
         if (confirm('Remove this item from pantry?')) {
             removePantryItem(ingredientId);
         }
+    };
+
+    const selectIngredient = (ingredientId: string) => {
+        const ingredient = ingredients.find(ing => ing.id === ingredientId);
+        if (ingredient && editForm) {
+            setEditForm({
+                ...editForm,
+                ingredientId: ingredient.id,
+                unit: ingredient.unit
+            });
+            setIngredientSearch(ingredient.name);
+            setShowIngredientDropdown(false);
+        }
+    };
+
+    const handleCreateNewIngredient = () => {
+        const newIngredient = {
+            id: crypto.randomUUID(),
+            name: newIngredientName,
+            category: 'other',
+            shelfLife: 7,
+            packageSize: 1,
+            unit: 'pc'
+        };
+        addIngredient(newIngredient);
+
+        if (editForm) {
+            setEditForm({
+                ...editForm,
+                ingredientId: newIngredient.id,
+                unit: newIngredient.unit
+            });
+            setIngredientSearch(newIngredient.name);
+        }
+
+        setShowNewIngredientModal(false);
+        setShowIngredientDropdown(false);
+        setNewIngredientName('');
     };
 
     const getIngredientName = (ingredientId: string) => {
@@ -92,26 +143,51 @@ export const PantryManager: React.FC = () => {
                         <div className="grid gap-4">
                             <div>
                                 <label className="text-sm text-gray-400 block mb-2">Ingredient</label>
-                                <select
-                                    className="input w-full"
-                                    value={editForm.ingredientId}
-                                    onChange={e => {
-                                        const selectedIngredient = ingredients.find(ing => ing.id === e.target.value);
-                                        setEditForm({
-                                            ...editForm,
-                                            ingredientId: e.target.value,
-                                            unit: selectedIngredient?.unit || editForm.unit
-                                        });
-                                    }}
-                                    disabled={!isCreating}
-                                >
-                                    <option value="">Select ingredient...</option>
-                                    {ingredients.map(ing => (
-                                        <option key={ing.id} value={ing.id}>
-                                            {ing.name} ({ing.category})
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        className="input w-full"
+                                        placeholder="Search ingredient..."
+                                        value={ingredientSearch}
+                                        onChange={e => {
+                                            setIngredientSearch(e.target.value);
+                                            setShowIngredientDropdown(true);
+                                        }}
+                                        onFocus={() => setShowIngredientDropdown(true)}
+                                        onBlur={() => {
+                                            // Delay to allow click on dropdown
+                                            setTimeout(() => setShowIngredientDropdown(false), 200);
+                                        }}
+                                        disabled={!isCreating}
+                                    />
+
+                                    {/* Autocomplete Dropdown */}
+                                    {showIngredientDropdown && isCreating && ingredientSearch && (
+                                        <div className="absolute top-full left-0 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto mt-1">
+                                            {filteredIngredients.map(ing => (
+                                                <button
+                                                    key={ing.id}
+                                                    className="w-full text-left px-3 py-2 hover:bg-gray-700 text-sm flex justify-between"
+                                                    onClick={() => selectIngredient(ing.id)}
+                                                >
+                                                    <span>{ing.name}</span>
+                                                    <span className="text-gray-500 text-xs">{ing.category}</span>
+                                                </button>
+                                            ))}
+                                            {filteredIngredients.length === 0 && (
+                                                <button
+                                                    className="w-full text-left px-3 py-2 hover:bg-gray-700 text-sm text-blue-400 flex items-center gap-2"
+                                                    onClick={() => {
+                                                        setNewIngredientName(ingredientSearch);
+                                                        setShowNewIngredientModal(true);
+                                                    }}
+                                                >
+                                                    <Plus size={14} /> Create "{ingredientSearch}"
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
@@ -149,6 +225,42 @@ export const PantryManager: React.FC = () => {
                             <button onClick={cancel} className="btn-secondary">Cancel</button>
                             <button onClick={save} className="btn-primary flex items-center gap-2" disabled={!editForm.ingredientId}>
                                 <Save size={18} /> Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* New Ingredient Modal */}
+            {showNewIngredientModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[110] p-4">
+                    <div className="card p-6 w-full max-w-sm bg-gray-900 border border-gray-700 shadow-2xl">
+                        <h3 className="text-xl font-bold mb-4">Create New Ingredient</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-sm text-gray-400 block mb-2">Name</label>
+                                <input
+                                    type="text"
+                                    className="input w-full"
+                                    value={newIngredientName}
+                                    onChange={e => setNewIngredientName(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button onClick={() => {
+                                setShowNewIngredientModal(false);
+                                setNewIngredientName('');
+                            }} className="btn-secondary">
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateNewIngredient}
+                                className="btn-primary flex items-center gap-2"
+                                disabled={!newIngredientName.trim()}
+                            >
+                                <Plus size={18} /> Create
                             </button>
                         </div>
                     </div>

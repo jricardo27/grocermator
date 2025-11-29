@@ -14,6 +14,7 @@ export const PantryManager: React.FC = () => {
     const [showIngredientDropdown, setShowIngredientDropdown] = useState(false);
     const [showNewIngredientModal, setShowNewIngredientModal] = useState(false);
     const [newIngredientName, setNewIngredientName] = useState('');
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const filteredPantry = pantry.filter(item => {
         const ingredient = ingredients.find(ing => ing.id === item.ingredientId);
@@ -66,14 +67,18 @@ export const PantryManager: React.FC = () => {
     const handleDelete = (ingredientId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        // Use requestAnimationFrame to ensure the dialog stays open
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                if (window.confirm('Remove this item from pantry?')) {
-                    removePantryItem(ingredientId);
-                }
-            });
-        });
+        setDeleteConfirmId(ingredientId);
+    };
+
+    const confirmDelete = () => {
+        if (deleteConfirmId) {
+            removePantryItem(deleteConfirmId);
+            setDeleteConfirmId(null);
+        }
+    };
+
+    const cancelDelete = () => {
+        setDeleteConfirmId(null);
     };
 
     const selectIngredient = (ingredientId: string) => {
@@ -307,6 +312,28 @@ export const PantryManager: React.FC = () => {
                     </div>
                 )}
             </div>
-        </div>
+
+            {/* Delete Confirmation Modal */}
+            {
+                deleteConfirmId && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[110] p-4">
+                        <div className="card p-6 w-full max-w-sm bg-gray-900 border border-gray-700 shadow-2xl">
+                            <h3 className="text-xl font-bold mb-4">Remove from Pantry?</h3>
+                            <p className="text-gray-400 mb-6">
+                                Are you sure you want to remove <span className="font-semibold text-white">{getIngredientName(deleteConfirmId)}</span> from your pantry?
+                            </p>
+                            <div className="flex gap-3">
+                                <button onClick={cancelDelete} className="btn-secondary flex-1">
+                                    Cancel
+                                </button>
+                                <button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex-1">
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 };

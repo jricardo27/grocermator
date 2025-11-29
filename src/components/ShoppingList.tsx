@@ -5,7 +5,7 @@ import { ArrowLeft, CheckSquare, Package } from 'lucide-react';
 
 
 export const ShoppingList: React.FC<{ planId: string, onBack: () => void }> = ({ planId, onBack }) => {
-    const { mealPlans, ingredients: ingredientEntities } = useData();
+    const { mealPlans, ingredients: ingredientEntities, pantry } = useData();
 
     const plan = useMemo(() => mealPlans.find(p => p.id === planId), [mealPlans, planId]);
 
@@ -22,17 +22,24 @@ export const ShoppingList: React.FC<{ planId: string, onBack: () => void }> = ({
                 e.name.toLowerCase() === item.name.toLowerCase()
             );
 
-            if (entity && entity.packageSize > 0) {
-                // Calculate packs needed
-                // If units match, direct division
-                // If units don't match, we can't easily calculate without conversion logic
-                // For now, assume units match or user handles it
-                const packsNeeded = Math.ceil(item.quantity / entity.packageSize);
-                return { ...item, entity, packsNeeded };
+            // Find matching pantry item
+            const pantryItem = pantry.find(p => p.ingredientId === entity?.id);
+            let adjustedQuantity = item.quantity;
+            let inPantry = 0;
+
+            if (pantryItem && pantryItem.unit === item.unit) {
+                inPantry = pantryItem.quantity;
+                adjustedQuantity = Math.max(0, item.quantity - pantryItem.quantity);
             }
-            return { ...item, entity: null, packsNeeded: null };
-        });
-    }, [items, ingredientEntities]);
+
+            if (entity && entity.packageSize > 0) {
+                // Calculate packs needed based on adjusted quantity
+                const packsNeeded = adjustedQuantity > 0 ? Math.ceil(adjustedQuantity / entity.packageSize) : 0;
+                return { ...item, entity, packsNeeded, adjustedQuantity, inPantry };
+            }
+            return { ...item, entity: null, packsNeeded: null, adjustedQuantity, inPantry };
+        }).sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
+    }, [items, ingredientEntities, pantry]);
 
     if (!plan) return <div>Plan not found</div>;
 
@@ -52,15 +59,24 @@ export const ShoppingList: React.FC<{ planId: string, onBack: () => void }> = ({
                         <p className="text-gray-500">No ingredients needed.</p>
                     ) : (
                         enrichedItems.map((item, idx) => (
-                            <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                            <div key={idx} className={`flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg border ${item.adjustedQuantity === 0 ? 'bg-green-900/20 border-green-900/50' : 'bg-gray-800/50 border-gray-700'}`}>
                                 <div className="flex items-center gap-3 flex-1">
                                     <input type="checkbox" className="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700" />
-                                    <span className="font-bold text-blue-400 w-16 text-right">{parseFloat(item.quantity.toFixed(2))}</span>
-                                    <span className="text-gray-400 w-16">{item.unit}</span>
-                                    <span className="font-medium">{item.name}</span>
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-bold text-blue-400 w-16 text-right">{parseFloat(item.adjustedQuantity.toFixed(2))}</span>
+                                            <span className="text-gray-400 w-16">{item.unit}</span>
+                                            <span className="font-medium">{item.name}</span>
+                                        </div>
+                                        {item.inPantry > 0 && (
+                                            <span className="text-xs text-green-400 ml-8 sm:ml-2">
+                                                ✓ Have {parseFloat(item.inPantry.toFixed(2))} {item.unit}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {item.packsNeeded && item.entity && (
+                                {item.packsNeeded && item.packsNeeded > 0 && item.entity && (
                                     <div className="flex items-center gap-2 text-sm text-green-400 bg-green-900/20 px-3 py-1 rounded-full border border-green-900/50 ml-8 sm:ml-0">
                                         <Package size={14} />
                                         <span>

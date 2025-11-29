@@ -4,11 +4,12 @@ import { RecipeList } from './components/RecipeList';
 import { MealPlanner } from './components/MealPlanner';
 import { ShoppingList } from './components/ShoppingList';
 import { IngredientManager } from './components/IngredientManager';
+import { PantryManager } from './components/PantryManager';
 import { ChefHat, Calendar, Download, Upload, Star, Smartphone, Package } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const { exportData, importData } = useData();
-  const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list' | 'ingredients'>('recipes');
+  const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list' | 'ingredients' | 'pantry'>('recipes');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -40,7 +41,7 @@ const AppContent: React.FC = () => {
     if (file) {
       try {
         const stats = await importData(file);
-        alert(`Data imported successfully!\n\nRecipes: ${stats.recipeCount}\nMeal Plans: ${stats.mealPlanCount}\nIngredients: ${stats.ingredientCount}`);
+        alert(`Data imported successfully!\n\nRecipes: ${stats.recipeCount}\nMeal Plans: ${stats.mealPlanCount}\nIngredients: ${stats.ingredientCount}\nPantry Items: ${stats.pantryCount}`);
       } catch (err) {
         alert('Failed to import data: ' + err);
       }
@@ -140,6 +141,16 @@ const AppContent: React.FC = () => {
               <Package size={20} />
               <span className="font-medium">Ingredients</span>
             </button>
+            <button
+              onClick={() => setView('pantry')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${view === 'pantry'
+                ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                }`}
+            >
+              <Package size={20} />
+              <span className="font-medium">Pantry</span>
+            </button>
           </nav>
 
           {/* Main Content Area */}
@@ -158,6 +169,7 @@ const AppContent: React.FC = () => {
               />
             )}
             {view === 'ingredients' && <IngredientManager />}
+            {view === 'pantry' && <PantryManager />}
           </div>
         </div>
       </main>

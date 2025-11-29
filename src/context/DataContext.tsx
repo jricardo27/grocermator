@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Recipe, MealPlan, AppData, IngredientEntity } from '../types';
+import type { Recipe, MealPlan, AppData, IngredientEntity, PantryItem } from '../types';
 import { INGREDIENT_DATABASE } from '../data/ingredientDatabase';
 
 interface DataContextType {
     recipes: Recipe[];
     mealPlans: MealPlan[];
     ingredients: IngredientEntity[];
+    pantry: PantryItem[];
     addRecipe: (recipe: Recipe) => void;
     updateRecipe: (recipe: Recipe) => void;
     deleteRecipe: (id: string) => void;
@@ -16,8 +17,11 @@ interface DataContextType {
     addIngredient: (ingredient: IngredientEntity) => void;
     updateIngredient: (ingredient: IngredientEntity) => void;
     deleteIngredient: (id: string) => void;
+    addPantryItem: (item: PantryItem) => void;
+    updatePantryItem: (ingredientId: string, item: PantryItem) => void;
+    removePantryItem: (ingredientId: string) => void;
     exportData: () => void;
-    importData: (file: File) => Promise<{ recipeCount: number, mealPlanCount: number, ingredientCount: number }>;
+    importData: (file: File) => Promise<{ recipeCount: number, mealPlanCount: number, ingredientCount: number, pantryCount: number }>;
     togglePlanFavorite: (id: string) => void;
 }
 
@@ -78,11 +82,25 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }));
     });
 
+    const [pantry, setPantry] = useState<PantryItem[]>(() => {
+        if (typeof window === 'undefined') return [];
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                const parsed: AppData = JSON.parse(stored);
+                return parsed.pantry || [];
+            } catch (e) {
+                console.error("Failed to parse local storage data", e);
+            }
+        }
+        return [];
+    });
+
     // Save to local storage whenever data changes
     useEffect(() => {
-        const data: AppData = { recipes, mealPlans, ingredients };
+        const data: AppData = { recipes, mealPlans, ingredients, pantry };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }, [recipes, mealPlans, ingredients]);
+    }, [recipes, mealPlans, ingredients, pantry]);
 
     const addRecipe = (recipe: Recipe) => {
         setRecipes(prev => [...prev, recipe]);
@@ -126,9 +144,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIngredients(prev => prev.filter(i => i.id !== id));
     };
 
+    const addPantryItem = (item: PantryItem) => {
+        setPantry(prev => [...prev, item]);
+    };
+
+    const updatePantryItem = (ingredientId: string, updatedItem: PantryItem) => {
+        setPantry(prev => prev.map(item => item.ingredientId === ingredientId ? updatedItem : item));
+    };
+
+    const removePantryItem = (ingredientId: string) => {
+        setPantry(prev => prev.filter(item => item.ingredientId !== ingredientId));
+    };
+
     const exportData = () => {
-        const data: AppData = { recipes, mealPlans, ingredients };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const data: AppData = { recipes, mealPlans, ingredients, pantry };
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -139,7 +170,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         URL.revokeObjectURL(url);
     };
 
-    const importData = (file: File): Promise<{ recipeCount: number, mealPlanCount: number, ingredientCount: number }> => {
+    const importData = (file: File): Promise<{ recipeCount: number, mealPlanCount: number, ingredientCount: number, pantryCount: number }> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -152,10 +183,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         if (parsed.ingredients) {
                             setIngredients(parsed.ingredients);
                         }
+                        if (parsed.pantry) {
+                            setPantry(parsed.pantry);
+                        }
                         resolve({
                             recipeCount: parsed.recipes.length,
                             mealPlanCount: parsed.mealPlans.length,
-                            ingredientCount: parsed.ingredients?.length || 0
+                            ingredientCount: parsed.ingredients?.length || 0,
+                            pantryCount: parsed.pantry?.length || 0
                         });
                     } else {
                         reject(new Error("Invalid data format"));
@@ -171,10 +206,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return (
         <DataContext.Provider value={{
-            recipes, mealPlans, ingredients,
+            recipes, mealPlans, ingredients, pantry,
             addRecipe, updateRecipe, deleteRecipe,
             addMealPlan, updateMealPlan, deleteMealPlan,
             addIngredient, updateIngredient, deleteIngredient,
+            addPantryItem, updatePantryItem, removePantryItem,
             exportData, importData, togglePlanFavorite
         }}>
             {children}

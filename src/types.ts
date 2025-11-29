@@ -42,10 +42,18 @@ export interface MealPlan {
   isFavorite?: boolean;
 }
 
+export interface PantryItem {
+  ingredientId: string;
+  quantity: number;
+  unit: string;
+  addedDate: string;
+}
+
 export interface AppData {
   recipes: Recipe[];
   mealPlans: MealPlan[];
-  ingredients?: IngredientEntity[]; // New field for central ingredient database
+  ingredients: IngredientEntity[]; // New field for central ingredient database
+  pantry: PantryItem[];
 }
 
 // Standard units for dropdowns

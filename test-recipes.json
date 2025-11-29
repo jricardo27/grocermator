@@ -1,0 +1,525 @@
+{
+    "recipes": [
+        {
+            "id": "recipe-001",
+            "name": "Classic Spaghetti Carbonara",
+            "servings": 4,
+            "ingredients": [
+                {
+                    "name": "Spaghetti",
+                    "quantity": 400,
+                    "unit": "g"
+                },
+                {
+                    "name": "Bacon",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Eggs",
+                    "quantity": 4,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Parmesan Cheese",
+                    "quantity": 100,
+                    "unit": "g"
+                },
+                {
+                    "name": "Black Pepper",
+                    "quantity": 1,
+                    "unit": "tsp"
+                },
+                {
+                    "name": "Garlic",
+                    "quantity": 2,
+                    "unit": "clove"
+                }
+            ],
+            "instructions": "1. Cook spaghetti according to package directions.\n2. Fry bacon until crispy, add minced garlic.\n3. Beat eggs with grated parmesan.\n4. Drain pasta, mix with bacon, remove from heat.\n5. Quickly stir in egg mixture, season with pepper.\n6. Serve immediately.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "fall",
+                    "winter"
+                ]
+            }
+        },
+        {
+            "id": "recipe-002",
+            "name": "Fresh Caprese Salad",
+            "servings": 2,
+            "ingredients": [
+                {
+                    "name": "Tomatoes",
+                    "quantity": 3,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Mozzarella",
+                    "quantity": 250,
+                    "unit": "g"
+                },
+                {
+                    "name": "Basil",
+                    "quantity": 1,
+                    "unit": "bunch"
+                },
+                {
+                    "name": "Olive Oil",
+                    "quantity": 3,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Balsamic Vinegar",
+                    "quantity": 2,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Salt",
+                    "quantity": 0.5,
+                    "unit": "tsp"
+                }
+            ],
+            "instructions": "1. Slice tomatoes and mozzarella into rounds.\n2. Arrange alternating on a plate.\n3. Tuck basil leaves between slices.\n4. Drizzle with olive oil and balsamic vinegar.\n5. Season with salt and serve.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "summer"
+                ]
+            }
+        },
+        {
+            "id": "recipe-003",
+            "name": "Chicken Stir-Fry",
+            "servings": 3,
+            "ingredients": [
+                {
+                    "name": "Chicken Breast",
+                    "quantity": 500,
+                    "unit": "g"
+                },
+                {
+                    "name": "Bell Peppers",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Broccoli",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Soy Sauce",
+                    "quantity": 4,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Ginger",
+                    "quantity": 1,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Garlic",
+                    "quantity": 3,
+                    "unit": "clove"
+                },
+                {
+                    "name": "Vegetable Oil",
+                    "quantity": 2,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Rice",
+                    "quantity": 300,
+                    "unit": "g"
+                }
+            ],
+            "instructions": "1. Cook rice according to package directions.\n2. Cut chicken into bite-sized pieces.\n3. Heat oil in wok, stir-fry chicken until cooked.\n4. Add chopped vegetables, ginger, and garlic.\n5. Stir-fry for 5 minutes.\n6. Add soy sauce, cook 2 more minutes.\n7. Serve over rice."
+        },
+        {
+            "id": "recipe-004",
+            "name": "Vegetarian Chili",
+            "servings": 6,
+            "ingredients": [
+                {
+                    "name": "Black Beans",
+                    "quantity": 2,
+                    "unit": "can"
+                },
+                {
+                    "name": "Kidney Beans",
+                    "quantity": 1,
+                    "unit": "can"
+                },
+                {
+                    "name": "Tomatoes",
+                    "quantity": 800,
+                    "unit": "g"
+                },
+                {
+                    "name": "Onion",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Bell Peppers",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Corn",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Chili Powder",
+                    "quantity": 2,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Cumin",
+                    "quantity": 1,
+                    "unit": "tsp"
+                },
+                {
+                    "name": "Garlic",
+                    "quantity": 4,
+                    "unit": "clove"
+                }
+            ],
+            "instructions": "1. Sauté diced onion and bell peppers.\n2. Add minced garlic, cook 1 minute.\n3. Add beans, tomatoes, corn, and spices.\n4. Simmer for 30 minutes.\n5. Adjust seasoning to taste.\n6. Serve with rice or cornbread.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "fall",
+                    "winter"
+                ]
+            }
+        },
+        {
+            "id": "recipe-005",
+            "name": "Greek Salad",
+            "servings": 4,
+            "ingredients": [
+                {
+                    "name": "Cucumber",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Tomatoes",
+                    "quantity": 4,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Red Onion",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Feta Cheese",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Olives",
+                    "quantity": 100,
+                    "unit": "g"
+                },
+                {
+                    "name": "Olive Oil",
+                    "quantity": 4,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Lemon",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Oregano",
+                    "quantity": 1,
+                    "unit": "tsp"
+                }
+            ],
+            "instructions": "1. Chop cucumber, tomatoes, and onion.\n2. Combine in large bowl.\n3. Add olives and crumbled feta.\n4. Dress with olive oil and lemon juice.\n5. Sprinkle with oregano.\n6. Toss gently and serve.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "spring",
+                    "summer"
+                ]
+            }
+        },
+        {
+            "id": "recipe-006",
+            "name": "Beef Tacos",
+            "servings": 4,
+            "ingredients": [
+                {
+                    "name": "Ground Beef",
+                    "quantity": 500,
+                    "unit": "g"
+                },
+                {
+                    "name": "Taco Shells",
+                    "quantity": 12,
+                    "unit": "pc"
+                },
+                {
+                    "name": "Lettuce",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Tomatoes",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Cheddar Cheese",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Sour Cream",
+                    "quantity": 150,
+                    "unit": "ml"
+                },
+                {
+                    "name": "Taco Seasoning",
+                    "quantity": 2,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Onion",
+                    "quantity": 1,
+                    "unit": "whole"
+                }
+            ],
+            "instructions": "1. Brown ground beef with diced onion.\n2. Add taco seasoning and water, simmer 10 minutes.\n3. Warm taco shells according to package.\n4. Shred lettuce, dice tomatoes, grate cheese.\n5. Fill shells with beef.\n6. Top with lettuce, tomatoes, cheese, and sour cream."
+        },
+        {
+            "id": "recipe-007",
+            "name": "Mushroom Risotto",
+            "servings": 4,
+            "ingredients": [
+                {
+                    "name": "Arborio Rice",
+                    "quantity": 300,
+                    "unit": "g"
+                },
+                {
+                    "name": "Mushrooms",
+                    "quantity": 400,
+                    "unit": "g"
+                },
+                {
+                    "name": "Vegetable Broth",
+                    "quantity": 1,
+                    "unit": "l"
+                },
+                {
+                    "name": "White Wine",
+                    "quantity": 150,
+                    "unit": "ml"
+                },
+                {
+                    "name": "Onion",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Parmesan Cheese",
+                    "quantity": 100,
+                    "unit": "g"
+                },
+                {
+                    "name": "Butter",
+                    "quantity": 50,
+                    "unit": "g"
+                },
+                {
+                    "name": "Garlic",
+                    "quantity": 2,
+                    "unit": "clove"
+                }
+            ],
+            "instructions": "1. Heat broth and keep warm.\n2. Sauté diced onion and garlic in butter.\n3. Add sliced mushrooms, cook until soft.\n4. Add rice, stir to coat.\n5. Add wine, stir until absorbed.\n6. Add broth one ladle at a time, stirring constantly.\n7. Cook until rice is creamy, about 20 minutes.\n8. Stir in parmesan and serve.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "fall",
+                    "winter"
+                ]
+            }
+        },
+        {
+            "id": "recipe-008",
+            "name": "Salmon with Roasted Vegetables",
+            "servings": 2,
+            "ingredients": [
+                {
+                    "name": "Salmon Fillets",
+                    "quantity": 2,
+                    "unit": "pc"
+                },
+                {
+                    "name": "Broccoli",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Carrots",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Bell Peppers",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Olive Oil",
+                    "quantity": 3,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Lemon",
+                    "quantity": 1,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Garlic",
+                    "quantity": 2,
+                    "unit": "clove"
+                },
+                {
+                    "name": "Dill",
+                    "quantity": 1,
+                    "unit": "tbsp"
+                }
+            ],
+            "instructions": "1. Preheat oven to 200°C (400°F).\n2. Chop vegetables, toss with olive oil and garlic.\n3. Spread on baking sheet, roast 15 minutes.\n4. Season salmon with salt, pepper, and dill.\n5. Place salmon on vegetables, drizzle with lemon.\n6. Roast 12-15 minutes until salmon is cooked.\n7. Serve immediately.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "spring",
+                    "summer"
+                ]
+            }
+        },
+        {
+            "id": "recipe-009",
+            "name": "Pancakes",
+            "servings": 4,
+            "ingredients": [
+                {
+                    "name": "Flour",
+                    "quantity": 250,
+                    "unit": "g"
+                },
+                {
+                    "name": "Milk",
+                    "quantity": 300,
+                    "unit": "ml"
+                },
+                {
+                    "name": "Eggs",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Sugar",
+                    "quantity": 2,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Baking Powder",
+                    "quantity": 2,
+                    "unit": "tsp"
+                },
+                {
+                    "name": "Butter",
+                    "quantity": 50,
+                    "unit": "g"
+                },
+                {
+                    "name": "Vanilla Extract",
+                    "quantity": 1,
+                    "unit": "tsp"
+                },
+                {
+                    "name": "Salt",
+                    "quantity": 0.5,
+                    "unit": "tsp"
+                }
+            ],
+            "instructions": "1. Mix flour, sugar, baking powder, and salt.\n2. In another bowl, whisk eggs, milk, and vanilla.\n3. Combine wet and dry ingredients.\n4. Melt butter and fold into batter.\n5. Heat griddle or pan over medium heat.\n6. Pour 1/4 cup batter per pancake.\n7. Cook until bubbles form, flip and cook until golden.\n8. Serve with syrup or fruit."
+        },
+        {
+            "id": "recipe-010",
+            "name": "Thai Green Curry",
+            "servings": 4,
+            "ingredients": [
+                {
+                    "name": "Chicken Breast",
+                    "quantity": 500,
+                    "unit": "g"
+                },
+                {
+                    "name": "Coconut Milk",
+                    "quantity": 400,
+                    "unit": "ml"
+                },
+                {
+                    "name": "Green Curry Paste",
+                    "quantity": 3,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Bell Peppers",
+                    "quantity": 2,
+                    "unit": "whole"
+                },
+                {
+                    "name": "Bamboo Shoots",
+                    "quantity": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Thai Basil",
+                    "quantity": 1,
+                    "unit": "bunch"
+                },
+                {
+                    "name": "Fish Sauce",
+                    "quantity": 2,
+                    "unit": "tbsp"
+                },
+                {
+                    "name": "Sugar",
+                    "quantity": 1,
+                    "unit": "tsp"
+                },
+                {
+                    "name": "Rice",
+                    "quantity": 400,
+                    "unit": "g"
+                }
+            ],
+            "instructions": "1. Cook rice according to package directions.\n2. Heat 1/2 can coconut milk in wok.\n3. Add curry paste, cook until fragrant.\n4. Add chicken pieces, cook until no longer pink.\n5. Add remaining coconut milk, bamboo shoots, and peppers.\n6. Simmer 10 minutes.\n7. Add fish sauce, sugar, and basil.\n8. Serve over rice.",
+            "seasonal": {
+                "type": "season",
+                "seasons": [
+                    "fall",
+                    "winter",
+                    "spring"
+                ]
+            }
+        }
+    ],
+    "mealPlans": [],
+    "ingredients": []
+}

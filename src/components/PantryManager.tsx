@@ -282,7 +282,7 @@ export const PantryManager: React.FC = () => {
                                     <h3 className="text-lg font-semibold">{getIngredientName(item.ingredientId)}</h3>
                                     <span className="text-xs text-gray-400">{getIngredientCategory(item.ingredientId)}</span>
                                 </div>
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex gap-2">
                                     <button onClick={() => startEdit(item)} className="p-1 hover:text-blue-500">
                                         <Package size={16} />
                                     </button>

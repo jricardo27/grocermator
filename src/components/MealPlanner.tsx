@@ -178,7 +178,7 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onE
                                                         setCookingServings(r.servings);
                                                         setCookingModeRecipe(r);
                                                     }}
-                                                    className="text-blue-400 hover:text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="text-blue-400 hover:text-blue-300 transition-colors"
                                                     title="View Instructions"
                                                 >
                                                     <BookOpen size={16} />

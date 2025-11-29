@@ -155,7 +155,7 @@ export const IngredientManager: React.FC = () => {
                                 {ing.category} • {ing.packageSize} {ing.unit}/pkg • {ing.shelfLife}d shelf life
                             </div>
                         </div>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1">
                             <button onClick={() => startEdit(ing)} className="p-1 hover:text-blue-400">
                                 <Edit2 size={16} />
                             </button>

@@ -60,7 +60,7 @@ export const RecipeList: React.FC<{ initialEditRecipe?: Recipe }> = ({ initialEd
                                     </span>
                                 )}
                             </div>
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-2">
                                 <button onClick={() => startEdit(recipe)} className="p-1 hover:text-blue-500">
                                     <Edit2 size={16} />
                                 </button>

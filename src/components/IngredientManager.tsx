@@ -72,73 +72,76 @@ export const IngredientManager: React.FC = () => {
                 />
             </div>
 
-            {/* Create/Edit Form */}
+            {/* Create/Edit Modal */}
             {(isCreating || isEditing) && editForm && (
-                <div className="card p-4 border-blue-500/50">
-                    <h3 className="font-bold mb-3">{isCreating ? 'New Ingredient' : 'Edit Ingredient'}</h3>
-                    <div className="grid gap-3 md:grid-cols-2">
-                        <div>
-                            <label className="text-xs text-gray-400 block mb-1">Name</label>
-                            <input
-                                className="input w-full"
-                                value={editForm.name}
-                                onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                placeholder="e.g. Carrots"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-xs text-gray-400 block mb-1">Category</label>
-                            <select
-                                className="input w-full"
-                                value={editForm.category}
-                                onChange={e => setEditForm({ ...editForm, category: e.target.value })}
-                            >
-                                <option value="produce">Produce</option>
-                                <option value="dairy">Dairy</option>
-                                <option value="meat">Meat</option>
-                                <option value="pantry">Pantry</option>
-                                <option value="frozen">Frozen</option>
-                                <option value="bakery">Bakery</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-xs text-gray-400 block mb-1">Shelf Life (Days)</label>
-                            <input
-                                type="number"
-                                className="input w-full"
-                                value={editForm.shelfLife}
-                                onChange={e => setEditForm({ ...editForm, shelfLife: parseInt(e.target.value) || 0 })}
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="flex-1">
-                                <label className="text-xs text-gray-400 block mb-1">Package Size</label>
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+                    <div className="card p-6 w-full max-w-md bg-gray-900 border border-gray-700 shadow-2xl animate-in fade-in zoom-in-95">
+                        <h3 className="text-xl font-bold mb-4">{isCreating ? 'New Ingredient' : 'Edit Ingredient'}</h3>
+                        <div className="grid gap-4">
+                            <div>
+                                <label className="text-xs text-gray-400 block mb-1">Name</label>
+                                <input
+                                    className="input w-full"
+                                    value={editForm.name}
+                                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                                    placeholder="e.g. Carrots"
+                                    autoFocus
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-400 block mb-1">Category</label>
+                                <select
+                                    className="input w-full"
+                                    value={editForm.category}
+                                    onChange={e => setEditForm({ ...editForm, category: e.target.value })}
+                                >
+                                    <option value="produce">Produce</option>
+                                    <option value="dairy">Dairy</option>
+                                    <option value="meat">Meat</option>
+                                    <option value="pantry">Pantry</option>
+                                    <option value="frozen">Frozen</option>
+                                    <option value="bakery">Bakery</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-400 block mb-1">Shelf Life (Days)</label>
                                 <input
                                     type="number"
                                     className="input w-full"
-                                    value={editForm.packageSize}
-                                    onChange={e => setEditForm({ ...editForm, packageSize: parseFloat(e.target.value) || 0 })}
+                                    value={editForm.shelfLife}
+                                    onChange={e => setEditForm({ ...editForm, shelfLife: parseInt(e.target.value) || 0 })}
                                 />
                             </div>
-                            <div className="flex-1">
-                                <label className="text-xs text-gray-400 block mb-1">Unit</label>
-                                <select
-                                    className="input w-full"
-                                    value={editForm.unit}
-                                    onChange={e => setEditForm({ ...editForm, unit: e.target.value })}
-                                >
-                                    {STANDARD_UNITS.map(u => (
-                                        <option key={u} value={u}>{u}</option>
-                                    ))}
-                                </select>
+                            <div className="flex gap-3">
+                                <div className="flex-1">
+                                    <label className="text-xs text-gray-400 block mb-1">Package Size</label>
+                                    <input
+                                        type="number"
+                                        className="input w-full"
+                                        value={editForm.packageSize}
+                                        onChange={e => setEditForm({ ...editForm, packageSize: parseFloat(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-xs text-gray-400 block mb-1">Unit</label>
+                                    <select
+                                        className="input w-full"
+                                        value={editForm.unit}
+                                        onChange={e => setEditForm({ ...editForm, unit: e.target.value })}
+                                    >
+                                        {STANDARD_UNITS.map(u => (
+                                            <option key={u} value={u}>{u}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                        <button onClick={cancel} className="btn-secondary text-sm">Cancel</button>
-                        <button onClick={save} className="btn-primary text-sm flex items-center gap-1">
-                            <Save size={14} /> Save
-                        </button>
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button onClick={cancel} className="btn-secondary">Cancel</button>
+                            <button onClick={save} className="btn-primary flex items-center gap-2">
+                                <Save size={18} /> Save
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

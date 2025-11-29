@@ -39,8 +39,8 @@ const AppContent: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        await importData(file);
-        alert('Data imported successfully!');
+        const stats = await importData(file);
+        alert(`Data imported successfully!\n\nRecipes: ${stats.recipeCount}\nMeal Plans: ${stats.mealPlanCount}\nIngredients: ${stats.ingredientCount}`);
       } catch (err) {
         alert('Failed to import data: ' + err);
       }

@@ -17,7 +17,7 @@ interface DataContextType {
     updateIngredient: (ingredient: IngredientEntity) => void;
     deleteIngredient: (id: string) => void;
     exportData: () => void;
-    importData: (file: File) => Promise<void>;
+    importData: (file: File) => Promise<{ recipeCount: number, mealPlanCount: number, ingredientCount: number }>;
     togglePlanFavorite: (id: string) => void;
 }
 
@@ -139,7 +139,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         URL.revokeObjectURL(url);
     };
 
-    const importData = (file: File): Promise<void> => {
+    const importData = (file: File): Promise<{ recipeCount: number, mealPlanCount: number, ingredientCount: number }> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -152,7 +152,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         if (parsed.ingredients) {
                             setIngredients(parsed.ingredients);
                         }
-                        resolve();
+                        resolve({
+                            recipeCount: parsed.recipes.length,
+                            mealPlanCount: parsed.mealPlans.length,
+                            ingredientCount: parsed.ingredients?.length || 0
+                        });
                     } else {
                         reject(new Error("Invalid data format"));
                     }

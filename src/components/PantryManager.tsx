@@ -66,12 +66,14 @@ export const PantryManager: React.FC = () => {
     const handleDelete = (ingredientId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
-        // Use setTimeout to ensure the dialog stays open
-        setTimeout(() => {
-            if (window.confirm('Remove this item from pantry?')) {
-                removePantryItem(ingredientId);
-            }
-        }, 0);
+        // Use requestAnimationFrame to ensure the dialog stays open
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (window.confirm('Remove this item from pantry?')) {
+                    removePantryItem(ingredientId);
+                }
+            });
+        });
     };
 
     const selectIngredient = (ingredientId: string) => {

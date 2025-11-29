@@ -115,6 +115,23 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
     const conflictCount = recipeConflicts.filter(c => c.existingRecipe).length;
     const newIngredientsCount = ingredientMappings.filter(m => m.action === 'create').length;
 
+    // Track which ingredients are used by which recipes
+    const getRecipesUsingIngredient = (ingredientName: string): Recipe[] => {
+        return recipeConflicts
+            .filter(c => c.action !== 'skip')
+            .map(c => c.importedRecipe)
+            .filter(recipe =>
+                recipe.ingredients.some(ing =>
+                    ing.name.toLowerCase() === ingredientName.toLowerCase()
+                )
+            );
+    };
+
+    // Check if an ingredient can be skipped (only if no recipes use it)
+    const canSkipIngredient = (ingredientName: string): boolean => {
+        return getRecipesUsingIngredient(ingredientName).length === 0;
+    };
+
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4 overflow-y-auto">
             <div className="card p-6 w-full max-w-4xl bg-gray-900 border border-gray-700 shadow-2xl my-8">
@@ -129,7 +146,7 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                 <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="card p-4 bg-gray-800">
                         <div className="text-sm text-gray-400">Recipes</div>
-                        <div className="text-2xl font-bold">{importData.recipes.length}</div>
+                        <div className="text-2xl font-bold">{recipeConflicts.filter(c => c.action !== 'skip').length}/{importData.recipes.length}</div>
                         {conflictCount > 0 && (
                             <div className="text-xs text-yellow-400 mt-1">
                                 {conflictCount} conflict{conflictCount > 1 ? 's' : ''}
@@ -138,7 +155,7 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                     </div>
                     <div className="card p-4 bg-gray-800">
                         <div className="text-sm text-gray-400">Ingredients</div>
-                        <div className="text-2xl font-bold">{importData.ingredients.length}</div>
+                        <div className="text-2xl font-bold">{ingredientMappings.filter(m => m.action !== 'skip').length}/{importData.ingredients.length}</div>
                         <div className="text-xs text-green-400 mt-1">
                             {newIngredientsCount} new
                         </div>
@@ -149,79 +166,121 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                     </div>
                 </div>
 
-                {/* Recipe Conflicts */}
-                {conflictCount > 0 && (
-                    <div className="mb-6">
-                        <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-                            <AlertCircle className="text-yellow-400" size={20} />
-                            Recipe Conflicts
-                        </h3>
-                        <div className="space-y-2">
-                            {recipeConflicts.filter(c => c.existingRecipe).map((conflict, idx) => (
-                                <div key={idx} className="card p-4 bg-gray-800">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="font-semibold">{conflict.importedRecipe.name}</div>
-                                            <div className="text-xs text-gray-400">Already exists in your recipes</div>
+                {/* All Recipes */}
+                <div className="mb-6">
+                    <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                        {conflictCount > 0 && <AlertCircle className="text-yellow-400" size={20} />}
+                        Recipes ({importData.recipes.length})
+                    </h3>
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                        {recipeConflicts.map((conflict, idx) => (
+                            <div key={idx} className={`card p-4 ${conflict.existingRecipe ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-gray-800'}`}>
+                                <div className="flex justify-between items-start gap-4">
+                                    <div className="flex-1">
+                                        <div className="font-semibold flex items-center gap-2">
+                                            {conflict.importedRecipe.name}
+                                            {conflict.existingRecipe && (
+                                                <span className="text-xs px-2 py-0.5 bg-yellow-600 rounded">Conflict</span>
+                                            )}
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1">
+                                            {conflict.importedRecipe.ingredients.length} ingredients • {conflict.importedRecipe.servings} servings
+                                        </div>
+                                        {conflict.existingRecipe && (
+                                            <div className="text-xs text-yellow-400 mt-1">
+                                                ⚠️ A recipe with this name already exists
+                                            </div>
+                                        )}
+                                    </div>
+                                    <select
+                                        className="input text-sm min-w-[160px]"
+                                        value={conflict.action}
+                                        onChange={e => updateRecipeAction(idx, e.target.value as any)}
+                                    >
+                                        {conflict.existingRecipe ? (
+                                            <>
+                                                <option value="skip">Skip (keep existing)</option>
+                                                <option value="add">Add as duplicate</option>
+                                                <option value="replace">Replace existing</option>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <option value="add">Import</option>
+                                                <option value="skip">Skip</option>
+                                            </>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Ingredients */}
+                <div className="mb-6">
+                    <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                        <CheckCircle className="text-green-400" size={20} />
+                        Ingredients ({importData.ingredients.length})
+                    </h3>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {ingredientMappings.map((mapping, idx) => {
+                            const recipesUsing = getRecipesUsingIngredient(mapping.importedIngredient.name);
+                            const canSkip = canSkipIngredient(mapping.importedIngredient.name);
+
+                            return (
+                                <div key={idx} className="card p-3 bg-gray-800">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                            <div>
+                                                <span className="font-semibold">{mapping.importedIngredient.name}</span>
+                                                <span className="text-xs text-gray-400 ml-2">
+                                                    ({mapping.importedIngredient.category})
+                                                </span>
+                                            </div>
+                                            {recipesUsing.length > 0 && (
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    Used by: {recipesUsing.map(r => r.name).join(', ')}
+                                                </div>
+                                            )}
+                                            {!canSkip && mapping.action === 'skip' && (
+                                                <div className="text-xs text-red-400 mt-1">
+                                                    ⚠️ Cannot skip: used by imported recipes
+                                                </div>
+                                            )}
                                         </div>
                                         <select
-                                            className="input text-sm"
-                                            value={conflict.action}
-                                            onChange={e => updateRecipeAction(idx, e.target.value as any)}
+                                            className="input text-sm min-w-[180px]"
+                                            value={mapping.action === 'skip' ? 'skip' : (mapping.mapToId || 'create')}
+                                            onChange={e => {
+                                                const value = e.target.value;
+                                                if (value === 'create') {
+                                                    updateIngredientMapping(idx, 'create');
+                                                } else if (value === 'skip') {
+                                                    if (canSkip) {
+                                                        updateIngredientMapping(idx, 'skip');
+                                                    }
+                                                } else {
+                                                    updateIngredientMapping(idx, 'map', value);
+                                                }
+                                            }}
+                                            disabled={!canSkip && mapping.action === 'skip'}
                                         >
-                                            <option value="skip">Skip (keep existing)</option>
-                                            <option value="add">Add as duplicate</option>
-                                            <option value="replace">Replace existing</option>
+                                            <option value="create">Create new</option>
+                                            {canSkip && <option value="skip">Skip</option>}
+                                            <optgroup label="Map to existing">
+                                                {existingIngredients.map(ing => (
+                                                    <option key={ing.id} value={ing.id}>
+                                                        {ing.name} ({ing.category})
+                                                    </option>
+                                                ))}
+                                            </optgroup>
                                         </select>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })}
                     </div>
-                )}
-
-                {/* New Ingredients */}
-                {newIngredientsCount > 0 && (
-                    <div className="mb-6">
-                        <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-                            <CheckCircle className="text-green-400" size={20} />
-                            New Ingredients ({newIngredientsCount})
-                        </h3>
-                        <div className="space-y-2 max-h-60 overflow-y-auto">
-                            {ingredientMappings.filter(m => m.action === 'create').map((mapping, idx) => (
-                                <div key={idx} className="card p-3 bg-gray-800 flex justify-between items-center">
-                                    <div>
-                                        <span className="font-semibold">{mapping.importedIngredient.name}</span>
-                                        <span className="text-xs text-gray-400 ml-2">
-                                            ({mapping.importedIngredient.category})
-                                        </span>
-                                    </div>
-                                    <select
-                                        className="input text-sm"
-                                        value={mapping.mapToId || 'create'}
-                                        onChange={e => {
-                                            const value = e.target.value;
-                                            if (value === 'create') {
-                                                updateIngredientMapping(idx, 'create');
-                                            } else {
-                                                updateIngredientMapping(idx, 'map', value);
-                                            }
-                                        }}
-                                    >
-                                        <option value="create">Create new</option>
-                                        <optgroup label="Map to existing">
-                                            {existingIngredients.map(ing => (
-                                                <option key={ing.id} value={ing.id}>
-                                                    {ing.name} ({ing.category})
-                                                </option>
-                                            ))}
-                                        </optgroup>
-                                    </select>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                </div>
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
-import type { Recipe, Ingredient } from '../types';
+import type { Recipe, Ingredient, IngredientEntity } from '../types';
 import { Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import { getSeasonalBadge } from '../utils/seasonal';
 import { getUnitCategories, isValidUnit } from '../utils/units';
@@ -127,10 +127,21 @@ interface RecipeFormProps {
 }
 
 const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCancel }) => {
+    const { ingredients, addIngredient } = useData();
     const [showAdvanced, setShowAdvanced] = useState(false);
     const unitCategories = getUnitCategories();
 
-    const addIngredient = () => {
+    // Autocomplete state
+    const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showNewIngredientModal, setShowNewIngredientModal] = useState(false);
+    const [newIngredientName, setNewIngredientName] = useState('');
+
+    const filteredIngredients = searchTerm
+        ? ingredients.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        : [];
+
+    const addRecipeIngredient = () => {
         onChange({
             ...recipe,
             ingredients: [...recipe.ingredients, { name: '', quantity: 1, unit: 'pc' }]
@@ -140,12 +151,51 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
     const updateIngredient = (index: number, field: keyof Ingredient, value: string | number) => {
         const newIngredients = [...recipe.ingredients];
         newIngredients[index] = { ...newIngredients[index], [field]: value };
+
+        if (field === 'name') {
+            setSearchTerm(value as string);
+            setActiveSearchIndex(index);
+        }
+
         onChange({ ...recipe, ingredients: newIngredients });
+    };
+
+    const selectIngredient = (index: number, entity: IngredientEntity) => {
+        const newIngredients = [...recipe.ingredients];
+        newIngredients[index] = {
+            ...newIngredients[index],
+            name: entity.name,
+            unit: entity.unit,
+            ingredientId: entity.id
+        };
+        onChange({ ...recipe, ingredients: newIngredients });
+        setActiveSearchIndex(null);
+        setSearchTerm('');
     };
 
     const removeIngredient = (index: number) => {
         const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
         onChange({ ...recipe, ingredients: newIngredients });
+    };
+
+    const handleCreateNewIngredient = () => {
+        const newEntity: IngredientEntity = {
+            id: crypto.randomUUID(),
+            name: newIngredientName,
+            category: 'pantry',
+            shelfLife: 30,
+            packageSize: 1,
+            unit: 'pc'
+        };
+        addIngredient(newEntity);
+
+        // If we were searching for an ingredient, auto-select the new one
+        if (activeSearchIndex !== null) {
+            selectIngredient(activeSearchIndex, newEntity);
+        }
+
+        setShowNewIngredientModal(false);
+        setNewIngredientName('');
     };
 
     return (
@@ -189,7 +239,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
             <div className="space-y-2">
                 <label className="text-xs text-gray-400">Ingredients</label>
                 {recipe.ingredients.map((ing, idx) => (
-                    <div key={idx} className="flex gap-2 items-center">
+                    <div key={idx} className="flex gap-2 items-center relative">
                         <input
                             type="number"
                             step="any"
@@ -217,12 +267,50 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
                             <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         </div>
 
-                        <input
-                            className="input flex-1"
-                            value={ing.name}
-                            onChange={e => updateIngredient(idx, 'name', e.target.value)}
-                            placeholder="Ingredient"
-                        />
+                        <div className="flex-1 relative">
+                            <input
+                                className="input w-full"
+                                value={ing.name}
+                                onChange={e => updateIngredient(idx, 'name', e.target.value)}
+                                onFocus={() => {
+                                    setActiveSearchIndex(idx);
+                                    setSearchTerm(ing.name);
+                                }}
+                                onBlur={() => {
+                                    // Delay hiding to allow click
+                                    setTimeout(() => setActiveSearchIndex(null), 200);
+                                }}
+                                placeholder="Ingredient"
+                            />
+
+                            {/* Autocomplete Dropdown */}
+                            {activeSearchIndex === idx && searchTerm && (
+                                <div className="absolute top-full left-0 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto mt-1">
+                                    {filteredIngredients.map(entity => (
+                                        <button
+                                            key={entity.id}
+                                            className="w-full text-left px-3 py-2 hover:bg-gray-700 text-sm flex justify-between"
+                                            onClick={() => selectIngredient(idx, entity)}
+                                        >
+                                            <span>{entity.name}</span>
+                                            <span className="text-gray-500 text-xs">{entity.category}</span>
+                                        </button>
+                                    ))}
+                                    {filteredIngredients.length === 0 && (
+                                        <button
+                                            className="w-full text-left px-3 py-2 hover:bg-gray-700 text-sm text-blue-400 flex items-center gap-2"
+                                            onClick={() => {
+                                                setNewIngredientName(searchTerm);
+                                                setShowNewIngredientModal(true);
+                                            }}
+                                        >
+                                            <Plus size={14} /> Create "{searchTerm}"
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         <button onClick={() => removeIngredient(idx)} className="text-red-400 hover:text-red-300">
                             <X size={16} />
                         </button>
@@ -230,7 +318,7 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
                 ))}
             </div>
 
-            <button onClick={addIngredient} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
+            <button onClick={addRecipeIngredient} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1">
                 <Plus size={14} /> Add Ingredient
             </button>
 
@@ -275,8 +363,8 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
                                                 });
                                             }}
                                             className={`px-3 py-1 rounded-full text-xs border transition-colors ${isSelected
-                                                    ? 'bg-blue-600 border-blue-600 text-white'
-                                                    : 'border-gray-600 text-gray-400 hover:border-gray-400'
+                                                ? 'bg-blue-600 border-blue-600 text-white'
+                                                : 'border-gray-600 text-gray-400 hover:border-gray-400'
                                                 }`}
                                         >
                                             {season}
@@ -295,6 +383,32 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
                     <Save size={14} /> Save
                 </button>
             </div>
+
+            {/* New Ingredient Modal */}
+            {showNewIngredientModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+                    <div className="card p-6 w-full max-w-md bg-gray-900 border border-gray-700 shadow-2xl">
+                        <h3 className="text-xl font-bold mb-4">Add New Ingredient</h3>
+                        <p className="text-gray-400 mb-4">
+                            "{newIngredientName}" doesn't exist yet. Add it to your database?
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowNewIngredientModal(false)}
+                                className="btn-secondary"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateNewIngredient}
+                                className="btn-primary"
+                            >
+                                Create & Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

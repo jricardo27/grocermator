@@ -1,16 +1,21 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Recipe, MealPlan, AppData } from '../types';
+import type { Recipe, MealPlan, AppData, IngredientEntity } from '../types';
+import { INGREDIENT_DATABASE } from '../data/ingredientDatabase';
 
 interface DataContextType {
     recipes: Recipe[];
     mealPlans: MealPlan[];
+    ingredients: IngredientEntity[];
     addRecipe: (recipe: Recipe) => void;
     updateRecipe: (recipe: Recipe) => void;
     deleteRecipe: (id: string) => void;
     addMealPlan: (mealPlan: MealPlan) => void;
     updateMealPlan: (mealPlan: MealPlan) => void;
     deleteMealPlan: (id: string) => void;
+    addIngredient: (ingredient: IngredientEntity) => void;
+    updateIngredient: (ingredient: IngredientEntity) => void;
+    deleteIngredient: (id: string) => void;
     exportData: () => void;
     importData: (file: File) => Promise<void>;
     togglePlanFavorite: (id: string) => void;
@@ -49,11 +54,35 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return [];
     });
 
+    const [ingredients, setIngredients] = useState<IngredientEntity[]>(() => {
+        if (typeof window === 'undefined') return [];
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                const parsed: AppData = JSON.parse(stored);
+                if (parsed.ingredients && parsed.ingredients.length > 0) {
+                    return parsed.ingredients;
+                }
+            } catch (e) {
+                console.error("Failed to parse local storage data", e);
+            }
+        }
+        // Initialize with default database if empty
+        return INGREDIENT_DATABASE.map(ing => ({
+            id: crypto.randomUUID(),
+            name: ing.name,
+            category: ing.category,
+            shelfLife: ing.shelfLife,
+            packageSize: ing.packageSize || 1,
+            unit: ing.commonUnit
+        }));
+    });
+
     // Save to local storage whenever data changes
     useEffect(() => {
-        const data: AppData = { recipes, mealPlans };
+        const data: AppData = { recipes, mealPlans, ingredients };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }, [recipes, mealPlans]);
+    }, [recipes, mealPlans, ingredients]);
 
     const addRecipe = (recipe: Recipe) => {
         setRecipes(prev => [...prev, recipe]);
@@ -85,8 +114,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ));
     };
 
+    const addIngredient = (ingredient: IngredientEntity) => {
+        setIngredients(prev => [...prev, ingredient]);
+    };
+
+    const updateIngredient = (updated: IngredientEntity) => {
+        setIngredients(prev => prev.map(i => i.id === updated.id ? updated : i));
+    };
+
+    const deleteIngredient = (id: string) => {
+        setIngredients(prev => prev.filter(i => i.id !== id));
+    };
+
     const exportData = () => {
-        const data: AppData = { recipes, mealPlans };
+        const data: AppData = { recipes, mealPlans, ingredients };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -108,6 +149,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (Array.isArray(parsed.recipes) && Array.isArray(parsed.mealPlans)) {
                         setRecipes(parsed.recipes);
                         setMealPlans(parsed.mealPlans);
+                        if (parsed.ingredients) {
+                            setIngredients(parsed.ingredients);
+                        }
                         resolve();
                     } else {
                         reject(new Error("Invalid data format"));
@@ -123,9 +167,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return (
         <DataContext.Provider value={{
-            recipes, mealPlans,
+            recipes, mealPlans, ingredients,
             addRecipe, updateRecipe, deleteRecipe,
             addMealPlan, updateMealPlan, deleteMealPlan,
+            addIngredient, updateIngredient, deleteIngredient,
             exportData, importData, togglePlanFavorite
         }}>
             {children}

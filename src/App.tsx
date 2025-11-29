@@ -3,11 +3,12 @@ import { DataProvider, useData } from './context/DataContext';
 import { RecipeList } from './components/RecipeList';
 import { MealPlanner } from './components/MealPlanner';
 import { ShoppingList } from './components/ShoppingList';
-import { ChefHat, Calendar, Download, Upload, Star, Smartphone } from 'lucide-react';
+import { IngredientManager } from './components/IngredientManager';
+import { ChefHat, Calendar, Download, Upload, Star, Smartphone, Package } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const { exportData, importData } = useData();
-  const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list'>('recipes');
+  const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list' | 'ingredients'>('recipes');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -129,6 +130,16 @@ const AppContent: React.FC = () => {
               <Calendar size={20} />
               <span className="font-medium">Meal Planner</span>
             </button>
+            <button
+              onClick={() => setView('ingredients')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${view === 'ingredients'
+                ? 'bg-green-600 text-white shadow-lg shadow-green-600/20'
+                : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                }`}
+            >
+              <Package size={20} />
+              <span className="font-medium">Ingredients</span>
+            </button>
           </nav>
 
           {/* Main Content Area */}
@@ -146,6 +157,7 @@ const AppContent: React.FC = () => {
                 onBack={() => setView('planner')}
               />
             )}
+            {view === 'ingredients' && <IngredientManager />}
           </div>
         </div>
       </main>

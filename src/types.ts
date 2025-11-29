@@ -1,9 +1,19 @@
+export interface IngredientEntity {
+  id: string;
+  name: string;
+  category: string; // 'produce', 'dairy', 'pantry', etc.
+  shelfLife: number; // days
+  packageSize: number; // standard quantity per package
+  unit: string; // unit for the package size
+}
+
 export interface Ingredient {
   name: string;
   quantity: number;
   unit: string;
-  shelfLife?: number; // days until spoilage
-  packageSize?: number; // standard grocery package size
+  ingredientId?: string; // Link to the entity
+  shelfLife?: number;
+  packageSize?: number;
 }
 
 export interface SeasonalInfo {
@@ -35,6 +45,7 @@ export interface MealPlan {
 export interface AppData {
   recipes: Recipe[];
   mealPlans: MealPlan[];
+  ingredients?: IngredientEntity[]; // New field for central ingredient database
 }
 
 // Standard units for dropdowns

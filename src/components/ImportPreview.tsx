@@ -46,7 +46,29 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
 
     // Detect ingredient matches
     const detectIngredientMatches = (): IngredientMapping[] => {
-        return importData.ingredients.map(importedIng => {
+        // Start with explicit ingredients
+        const allIngredients = [...importData.ingredients];
+        const existingNames = new Set(allIngredients.map(i => i.name.toLowerCase()));
+
+        // Add implicit ingredients from recipes
+        importData.recipes.forEach(recipe => {
+            recipe.ingredients.forEach(ing => {
+                if (!existingNames.has(ing.name.toLowerCase())) {
+                    const newIng: IngredientEntity = {
+                        id: crypto.randomUUID(),
+                        name: ing.name,
+                        category: 'pantry', // Default
+                        shelfLife: 30, // Default
+                        packageSize: 1, // Default
+                        unit: ing.unit || 'pc'
+                    };
+                    allIngredients.push(newIng);
+                    existingNames.add(ing.name.toLowerCase());
+                }
+            });
+        });
+
+        return allIngredients.map(importedIng => {
             const exactMatch = existingIngredients.find(e =>
                 e.name.toLowerCase() === importedIng.name.toLowerCase()
             );

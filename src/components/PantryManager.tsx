@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import type { PantryItem } from '../types';
-import { Search, Plus, X, Save, Package } from 'lucide-react';
+import { Search, Plus, X, Save, Package, ChevronDown } from 'lucide-react';
+import { unitCategories } from '../utils/units';
 
 export const PantryManager: React.FC = () => {
     const { pantry, ingredients, addPantryItem, updatePantryItem, removePantryItem } = useData();
@@ -125,11 +126,22 @@ export const PantryManager: React.FC = () => {
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-400 block mb-2">Unit</label>
-                                    <input
-                                        className="input w-full"
-                                        value={editForm.unit}
-                                        onChange={e => setEditForm({ ...editForm, unit: e.target.value })}
-                                    />
+                                    <div className="relative">
+                                        <select
+                                            className="input w-full appearance-none pr-8"
+                                            value={editForm.unit}
+                                            onChange={e => setEditForm({ ...editForm, unit: e.target.value })}
+                                        >
+                                            {Object.entries(unitCategories).map(([category, units]) => (
+                                                <optgroup key={category} label={category}>
+                                                    {units.map(u => (
+                                                        <option key={u} value={u}>{u}</option>
+                                                    ))}
+                                                </optgroup>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
                         </div>

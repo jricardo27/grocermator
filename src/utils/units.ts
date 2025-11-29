@@ -3,13 +3,15 @@ import { STANDARD_UNITS, type StandardUnit } from '../types';
 /**
  * Get all standard units categorized for dropdowns
  */
+export const unitCategories = {
+    Volume: ['tsp', 'tbsp', 'cup', 'ml', 'l', 'fl oz'],
+    Weight: ['g', 'kg', 'oz', 'lb'],
+    Count: ['pc', 'whole', 'clove', 'slice'],
+    Other: ['bunch', 'can', 'package', 'box', 'bag']
+} as const;
+
 export function getUnitCategories() {
-    return {
-        Volume: ['tsp', 'tbsp', 'cup', 'ml', 'l', 'fl oz'],
-        Weight: ['g', 'kg', 'oz', 'lb'],
-        Count: ['pc', 'whole', 'clove', 'slice'],
-        Other: ['bunch', 'can', 'package', 'box', 'bag']
-    };
+    return unitCategories;
 }
 
 /**

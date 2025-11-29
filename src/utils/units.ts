@@ -1,4 +1,4 @@
-import { STANDARD_UNITS, StandardUnit } from '../types';
+import { STANDARD_UNITS, type StandardUnit } from '../types';
 
 /**
  * Get all standard units categorized for dropdowns

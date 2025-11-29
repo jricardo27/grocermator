@@ -1,15 +1,34 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import { RecipeList } from './components/RecipeList';
 import { MealPlanner } from './components/MealPlanner';
 import { ShoppingList } from './components/ShoppingList';
-import { ChefHat, Calendar, Download, Upload, Star } from 'lucide-react';
+import { ChefHat, Calendar, Download, Upload, Star, Smartphone } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { exportData, importData, mealPlans } = useData();
+  const { exportData, importData } = useData();
   const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list'>('recipes');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -49,6 +68,17 @@ const AppContent: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallClick}
+                className="p-2 text-green-400 hover:text-green-300 transition-colors flex items-center gap-2 text-sm font-medium animate-pulse"
+                title="Install App"
+              >
+                <Smartphone size={18} />
+                <span className="hidden sm:inline">Install</span>
+              </button>
+            )}
+
             <button
               onClick={handleExportFavorites}
               className="p-2 text-yellow-400 hover:text-yellow-300 transition-colors flex items-center gap-2 text-sm font-medium"

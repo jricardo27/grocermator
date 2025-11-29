@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { type Recipe, type IngredientEntity, type AppData } from '../types';
 import { AlertCircle, CheckCircle, X, ChevronDown, Check, Search } from 'lucide-react';
 
@@ -39,6 +40,7 @@ const CustomSelect: React.FC<{
 }> = ({ value, onChange, options, disabled, className }) => {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -46,9 +48,32 @@ const CustomSelect: React.FC<{
                 setIsOpen(false);
             }
         };
+
+        const handleScroll = () => {
+            if (isOpen) setIsOpen(false);
+        };
+
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        window.addEventListener('scroll', handleScroll, true);
+        window.addEventListener('resize', handleScroll);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('scroll', handleScroll, true);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setCoords({
+                top: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX,
+                width: rect.width
+            });
+        }
+    }, [isOpen]);
 
     const selectedOption = options.find(o => o.value === value);
 
@@ -63,8 +88,11 @@ const CustomSelect: React.FC<{
                 <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+            {isOpen && createPortal(
+                <div
+                    className="absolute bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-[9999] max-h-60 overflow-y-auto"
+                    style={{ top: coords.top + 4, left: coords.left, width: coords.width }}
+                >
                     {options.map(option => (
                         <button
                             key={option.value}
@@ -80,7 +108,8 @@ const CustomSelect: React.FC<{
                             )}
                         </button>
                     ))}
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
@@ -98,20 +127,44 @@ const Combobox: React.FC<{
     const [search, setSearch] = useState('');
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+                // Check if clicking inside the portal
+                const target = event.target as HTMLElement;
+                if (!target.closest('.portal-dropdown')) {
+                    setIsOpen(false);
+                }
             }
         };
+
+        const handleScroll = () => {
+            if (isOpen) setIsOpen(false);
+        };
+
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        window.addEventListener('scroll', handleScroll, true);
+        window.addEventListener('resize', handleScroll);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('scroll', handleScroll, true);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, [isOpen]);
 
     useEffect(() => {
-        if (isOpen && inputRef.current) {
-            inputRef.current.focus();
+        if (isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            setCoords({
+                top: rect.bottom + window.scrollY,
+                left: rect.left + window.scrollX,
+                width: rect.width
+            });
+            // Focus input after a short delay to allow render
+            setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [isOpen]);
 
@@ -141,8 +194,11 @@ const Combobox: React.FC<{
                 <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto flex flex-col">
+            {isOpen && createPortal(
+                <div
+                    className="portal-dropdown absolute bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-[9999] max-h-60 overflow-y-auto flex flex-col"
+                    style={{ top: coords.top + 4, left: coords.left, width: coords.width }}
+                >
                     <div className="p-2 sticky top-0 bg-gray-800 border-b border-gray-700">
                         <div className="relative">
                             <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -187,7 +243,8 @@ const Combobox: React.FC<{
                             </div>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
@@ -364,7 +421,7 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                         {conflictCount > 0 && <AlertCircle className="text-yellow-400" size={20} />}
                         Recipes ({importData.recipes.length})
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-80 overflow-y-auto">
                         {recipeConflicts.map((conflict, idx) => (
                             <div key={idx} className={`card p-4 ${conflict.existingRecipe ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-gray-800'}`}>
                                 <div className="flex justify-between items-start gap-4">
@@ -409,7 +466,7 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                         <CheckCircle className="text-green-400" size={20} />
                         Ingredients ({importData.ingredients.length})
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
                         {ingredientMappings.map((mapping, idx) => {
                             const recipesUsing = getRecipesUsingIngredient(mapping.importedIngredient.name);
                             const canSkip = canSkipIngredient(mapping.importedIngredient.name);

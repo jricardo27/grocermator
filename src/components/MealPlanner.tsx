@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { generateMealPlan } from '../utils/planner';
-import { Calendar, Trash2, ShoppingCart } from 'lucide-react';
+import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays } from 'lucide-react';
 
 export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> = ({ onSelectPlan }) => {
     const { recipes, mealPlans, addMealPlan, deleteMealPlan } = useData();
     const [days, setDays] = useState(7);
+    const [optimizeWaste, setOptimizeWaste] = useState(false);
+    const [allowRepeats, setAllowRepeats] = useState(false);
+    const [seasonalOnly, setSeasonalOnly] = useState(false);
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
 
     const handleGenerate = () => {
-        const plan = generateMealPlan(recipes, days);
+        const plan = generateMealPlan(recipes, {
+            days,
+            startDate: new Date(startDate),
+            optimizeWaste,
+            allowRepeats,
+            seasonalOnly,
+            recentRecipes: mealPlans.slice(0, 3).flatMap(p => p.recipes.map(r => r.id))
+        });
         addMealPlan(plan);
     };
 
@@ -18,26 +29,90 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                     <Calendar /> New Meal Plan
                 </h2>
-                <div className="flex gap-4 items-end">
-                    <div className="space-y-1">
-                        <label className="text-sm text-gray-400">Number of Days/Meals</label>
-                        <input
-                            type="number"
-                            min="1"
-                            max="30"
-                            value={days}
-                            onChange={e => setDays(parseInt(e.target.value) || 1)}
-                            className="input w-32"
-                        />
+
+                <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-sm text-gray-400">Number of Days/Meals</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="30"
+                                value={days}
+                                onChange={e => setDays(parseInt(e.target.value) || 1)}
+                                className="input w-full"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-sm text-gray-400">Start Date</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={e => setStartDate(e.target.value)}
+                                className="input w-full"
+                            />
+                        </div>
                     </div>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={recipes.length === 0}
-                        className="btn-primary"
-                    >
-                        Generate Plan
-                    </button>
+
+                    <div className="space-y-3 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                        <h3 className="font-semibold text-sm text-gray-300 mb-2">Optimization Settings</h3>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${optimizeWaste ? 'bg-green-600 border-green-600' : 'border-gray-500 group-hover:border-gray-400'}`}>
+                                {optimizeWaste && <Leaf size={14} className="text-white" />}
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={optimizeWaste}
+                                onChange={e => setOptimizeWaste(e.target.checked)}
+                                className="hidden"
+                            />
+                            <span className={optimizeWaste ? 'text-green-400 font-medium' : 'text-gray-400'}>
+                                Minimize Waste (Prioritize Perishables)
+                            </span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${allowRepeats ? 'bg-blue-600 border-blue-600' : 'border-gray-500 group-hover:border-gray-400'}`}>
+                                {allowRepeats && <Repeat size={14} className="text-white" />}
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={allowRepeats}
+                                onChange={e => setAllowRepeats(e.target.checked)}
+                                className="hidden"
+                            />
+                            <span className={allowRepeats ? 'text-blue-400 font-medium' : 'text-gray-400'}>
+                                Allow Repeated Recipes
+                            </span>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${seasonalOnly ? 'bg-orange-600 border-orange-600' : 'border-gray-500 group-hover:border-gray-400'}`}>
+                                {seasonalOnly && <CalendarDays size={14} className="text-white" />}
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={seasonalOnly}
+                                onChange={e => setSeasonalOnly(e.target.checked)}
+                                className="hidden"
+                            />
+                            <span className={seasonalOnly ? 'text-orange-400 font-medium' : 'text-gray-400'}>
+                                Seasonal Recipes Only
+                            </span>
+                        </label>
+                    </div>
                 </div>
+
+                <button
+                    onClick={handleGenerate}
+                    disabled={recipes.length === 0}
+                    className="btn-primary w-full md:w-auto"
+                >
+                    Generate Optimized Plan
+                </button>
+
                 {recipes.length === 0 && (
                     <p className="text-red-400 text-sm mt-2">Add recipes first to generate a plan.</p>
                 )}
@@ -55,7 +130,10 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                                     <div>
                                         <h4 className="font-bold text-lg">Plan for {plan.days} Meals</h4>
                                         <p className="text-xs text-gray-400">
-                                            {new Date(plan.createdAt).toLocaleDateString()} {new Date(plan.createdAt).toLocaleTimeString()}
+                                            Starts: {plan.startDate ? new Date(plan.startDate).toLocaleDateString() : 'N/A'}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            Created: {new Date(plan.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
                                     <button onClick={() => deleteMealPlan(plan.id)} className="text-red-400 hover:text-red-300">
@@ -65,9 +143,11 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
 
                                 <div className="flex-1 overflow-auto max-h-40 space-y-1">
                                     {plan.recipes.map((r, idx) => (
-                                        <div key={idx} className="text-sm border-b border-gray-700 py-1 last:border-0">
-                                            <span className="font-mono text-gray-500 mr-2">#{idx + 1}</span>
-                                            {r.name}
+                                        <div key={idx} className="text-sm border-b border-gray-700 py-1 last:border-0 flex justify-between">
+                                            <span>
+                                                <span className="font-mono text-gray-500 mr-2">#{idx + 1}</span>
+                                                {r.name}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>

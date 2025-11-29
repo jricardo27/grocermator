@@ -6,11 +6,13 @@ import { ShoppingList } from './components/ShoppingList';
 import { IngredientManager } from './components/IngredientManager';
 import { PantryManager } from './components/PantryManager';
 import { ChefHat, Calendar, Download, Upload, Star, Smartphone, Package } from 'lucide-react';
+import type { Recipe } from './types';
 
 const AppContent: React.FC = () => {
   const { exportData, importData } = useData();
   const [view, setView] = useState<'recipes' | 'planner' | 'shopping-list' | 'ingredients' | 'pantry'>('recipes');
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [recipeToEdit, setRecipeToEdit] = useState<Recipe | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -155,12 +157,18 @@ const AppContent: React.FC = () => {
 
           {/* Main Content Area */}
           <div className="flex-1 min-w-0">
-            {view === 'recipes' && <RecipeList />}
+            {view === 'recipes' && <RecipeList initialEditRecipe={recipeToEdit || undefined} />}
             {view === 'planner' && (
-              <MealPlanner onSelectPlan={(id) => {
-                setSelectedPlanId(id);
-                setView('shopping-list');
-              }} />
+              <MealPlanner
+                onSelectPlan={(id) => {
+                  setSelectedPlanId(id);
+                  setView('shopping-list');
+                }}
+                onEditRecipe={(recipe) => {
+                  setRecipeToEdit(recipe);
+                  setView('recipes');
+                }}
+              />
             )}
             {view === 'shopping-list' && selectedPlanId && (
               <ShoppingList

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { generateMealPlan } from '../utils/planner';
 import { scaleRecipe } from '../utils/recipeScaling';
-import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays, Users, BookOpen, X } from 'lucide-react';
+import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays, Users, BookOpen, X, Edit } from 'lucide-react';
 import type { Recipe } from '../types';
 
-export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> = ({ onSelectPlan }) => {
+export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onEditRecipe?: (recipe: Recipe) => void }> = ({ onSelectPlan, onEditRecipe }) => {
     const { recipes, mealPlans, addMealPlan, deleteMealPlan, updateMealPlan } = useData();
     const [days, setDays] = useState(7);
     const [optimizeWaste, setOptimizeWaste] = useState(false);
@@ -216,12 +216,27 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                                     {cookingModeRecipe.servings} servings
                                 </p>
                             </div>
-                            <button
-                                onClick={() => setCookingModeRecipe(null)}
-                                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                            >
-                                <X size={32} />
-                            </button>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        if (onEditRecipe) {
+                                            onEditRecipe(cookingModeRecipe);
+                                        }
+                                        setCookingModeRecipe(null);
+                                    }}
+                                    className="text-blue-400 hover:text-blue-300 p-2 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+                                    title="Edit Recipe"
+                                >
+                                    <Edit size={24} />
+                                    <span className="text-lg">Edit</span>
+                                </button>
+                                <button
+                                    onClick={() => setCookingModeRecipe(null)}
+                                    className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                                >
+                                    <X size={32} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Ingredients */}
@@ -245,16 +260,20 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                         <div>
                             <h2 className="text-3xl font-bold mb-6 text-green-400">Instructions</h2>
                             <div className="space-y-6">
-                                {(cookingModeRecipe.instructions || '').split('\n').filter(line => line.trim()).map((step, idx) => (
-                                    <div key={idx} className="flex gap-6">
-                                        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-xl font-bold">
-                                            {idx + 1}
+                                {(cookingModeRecipe.instructions || '').split('\n').filter(line => line.trim()).map((step, idx) => {
+                                    // Remove leading numbers like "1.", "2.", etc. from the step text
+                                    const cleanStep = step.trim().replace(/^\d+\.\s*/, '');
+                                    return (
+                                        <div key={idx} className="flex gap-6">
+                                            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-xl font-bold">
+                                                {idx + 1}
+                                            </div>
+                                            <p className="flex-1 text-2xl leading-relaxed pt-2">
+                                                {cleanStep}
+                                            </p>
                                         </div>
-                                        <p className="flex-1 text-2xl leading-relaxed pt-2">
-                                            {step.trim()}
-                                        </p>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

@@ -5,10 +5,10 @@ import { Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronUp, BookOpen } from '
 import { getSeasonalBadge } from '../utils/seasonal';
 import { getUnitCategories, isValidUnit } from '../utils/units';
 
-export const RecipeList: React.FC = () => {
+export const RecipeList: React.FC<{ initialEditRecipe?: Recipe }> = ({ initialEditRecipe }) => {
     const { recipes, addRecipe, updateRecipe, deleteRecipe } = useData();
-    const [isEditing, setIsEditing] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<Recipe | null>(null);
+    const [isEditing, setIsEditing] = useState<string | null>(initialEditRecipe?.id || null);
+    const [editForm, setEditForm] = useState<Recipe | null>(initialEditRecipe || null);
 
     const startEdit = (recipe: Recipe) => {
         setIsEditing(recipe.id);

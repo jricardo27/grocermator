@@ -63,10 +63,15 @@ export const PantryManager: React.FC = () => {
         cancel();
     };
 
-    const handleDelete = (ingredientId: string) => {
-        if (confirm('Remove this item from pantry?')) {
-            removePantryItem(ingredientId);
-        }
+    const handleDelete = (ingredientId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // Use setTimeout to ensure the dialog stays open
+        setTimeout(() => {
+            if (window.confirm('Remove this item from pantry?')) {
+                removePantryItem(ingredientId);
+            }
+        }, 0);
     };
 
     const selectIngredient = (ingredientId: string) => {
@@ -281,7 +286,7 @@ export const PantryManager: React.FC = () => {
                                     <button onClick={() => startEdit(item)} className="p-1 hover:text-blue-500">
                                         <Package size={16} />
                                     </button>
-                                    <button onClick={() => handleDelete(item.ingredientId)} className="p-1 hover:text-red-500">
+                                    <button onClick={(e) => handleDelete(item.ingredientId, e)} className="p-1 hover:text-red-500">
                                         <X size={16} />
                                     </button>
                                 </div>

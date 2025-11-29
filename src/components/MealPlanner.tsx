@@ -13,6 +13,12 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onE
     const [seasonalOnly, setSeasonalOnly] = useState(false);
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [cookingModeRecipe, setCookingModeRecipe] = useState<Recipe | null>(null);
+    const [cookingServings, setCookingServings] = useState<number>(1);
+
+    // Scale the recipe for cooking mode
+    const scaledCookingRecipe = cookingModeRecipe && cookingServings !== cookingModeRecipe.servings
+        ? scaleRecipe(cookingModeRecipe, cookingServings)
+        : cookingModeRecipe;
 
     const handleGenerate = () => {
         const plan = generateMealPlan(recipes, {
@@ -168,7 +174,10 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onE
 
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => setCookingModeRecipe(r)}
+                                                    onClick={() => {
+                                                        setCookingServings(r.servings);
+                                                        setCookingModeRecipe(r);
+                                                    }}
                                                     className="text-blue-400 hover:text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity"
                                                     title="View Instructions"
                                                 >
@@ -205,16 +214,24 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onE
             </div>
 
             {/* Cooking Mode - Full Screen Instructions */}
-            {cookingModeRecipe && (
+            {cookingModeRecipe && scaledCookingRecipe && (
                 <div className="fixed inset-0 bg-gray-950 z-[200] overflow-y-auto">
                     <div className="min-h-screen p-6 md:p-12">
                         {/* Header */}
                         <div className="flex justify-between items-start mb-8">
                             <div>
-                                <h1 className="text-4xl md:text-5xl font-bold mb-2">{cookingModeRecipe.name}</h1>
-                                <p className="text-xl text-gray-400">
-                                    {cookingModeRecipe.servings} servings
-                                </p>
+                                <h1 className="text-4xl md:text-5xl font-bold mb-2">{scaledCookingRecipe.name}</h1>
+                                <div className="flex items-center gap-3">
+                                    <label className="text-xl text-gray-400">Servings:</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="50"
+                                        value={cookingServings}
+                                        onChange={(e) => setCookingServings(parseInt(e.target.value) || 1)}
+                                        className="w-20 text-2xl font-bold bg-gray-800 border border-gray-600 rounded-lg px-3 py-1 text-center focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
                             </div>
                             <div className="flex gap-3">
                                 <button
@@ -243,7 +260,7 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onE
                         <div className="mb-12">
                             <h2 className="text-3xl font-bold mb-6 text-blue-400">Ingredients</h2>
                             <div className="space-y-3">
-                                {cookingModeRecipe.ingredients.map((ing, idx) => (
+                                {scaledCookingRecipe.ingredients.map((ing, idx) => (
                                     <div key={idx} className="flex items-baseline gap-4 text-xl">
                                         <span className="font-mono text-gray-500 w-8">•</span>
                                         <span className="font-bold text-blue-300 w-20 text-right">
@@ -260,7 +277,7 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void, onE
                         <div>
                             <h2 className="text-3xl font-bold mb-6 text-green-400">Instructions</h2>
                             <div className="space-y-6">
-                                {(cookingModeRecipe.instructions || '').split('\n').filter(line => line.trim()).map((step, idx) => {
+                                {(scaledCookingRecipe.instructions || '').split('\n').filter(line => line.trim()).map((step, idx) => {
                                     // Remove leading numbers like "1.", "2.", etc. from the step text
                                     const cleanStep = step.trim().replace(/^\d+\.\s*/, '');
                                     return (

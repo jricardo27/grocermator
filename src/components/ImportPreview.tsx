@@ -364,7 +364,7 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                         {conflictCount > 0 && <AlertCircle className="text-yellow-400" size={20} />}
                         Recipes ({importData.recipes.length})
                     </h3>
-                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                    <div className="space-y-2">
                         {recipeConflicts.map((conflict, idx) => (
                             <div key={idx} className={`card p-4 ${conflict.existingRecipe ? 'bg-yellow-900/20 border border-yellow-700' : 'bg-gray-800'}`}>
                                 <div className="flex justify-between items-start gap-4">
@@ -409,7 +409,7 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                         <CheckCircle className="text-green-400" size={20} />
                         Ingredients ({importData.ingredients.length})
                     </h3>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                    <div className="space-y-2">
                         {ingredientMappings.map((mapping, idx) => {
                             const recipesUsing = getRecipesUsingIngredient(mapping.importedIngredient.name);
                             const canSkip = canSkipIngredient(mapping.importedIngredient.name);

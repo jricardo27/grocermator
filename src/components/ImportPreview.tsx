@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { type Recipe, type IngredientEntity, type AppData } from '../types';
-import { AlertCircle, CheckCircle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, X, ChevronDown, Check, Search } from 'lucide-react';
 
 interface ImportPreviewProps {
     importData: AppData;
@@ -22,6 +22,176 @@ interface IngredientMapping {
     action: 'create' | 'map' | 'skip';
     mapToId?: string;
 }
+
+// Custom Select Component
+interface Option {
+    value: string;
+    label: string;
+    description?: string;
+}
+
+const CustomSelect: React.FC<{
+    value: string;
+    onChange: (value: string) => void;
+    options: Option[];
+    disabled?: boolean;
+    className?: string;
+}> = ({ value, onChange, options, disabled, className }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedOption = options.find(o => o.value === value);
+
+    return (
+        <div className={`relative ${className}`} ref={containerRef}>
+            <button
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                className={`input w-full flex justify-between items-center text-left ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                disabled={disabled}
+            >
+                <span className="truncate">{selectedOption?.label || value}</span>
+                <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto">
+                    {options.map(option => (
+                        <button
+                            key={option.value}
+                            onClick={() => {
+                                onChange(option.value);
+                                setIsOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 hover:bg-gray-700 flex flex-col ${option.value === value ? 'bg-gray-700/50 text-blue-400' : ''}`}
+                        >
+                            <span className="font-medium">{option.label}</span>
+                            {option.description && (
+                                <span className="text-xs text-gray-400">{option.description}</span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Autocomplete Combobox Component
+const Combobox: React.FC<{
+    value: string;
+    onChange: (value: string) => void;
+    options: { value: string; label: string; group?: string }[];
+    disabled?: boolean;
+    className?: string;
+}> = ({ value, onChange, options, disabled, className }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isOpen]);
+
+    const selectedOption = options.find(o => o.value === value);
+
+    const filteredOptions = options.filter(option =>
+        option.label.toLowerCase().includes(search.toLowerCase()) ||
+        (option.group && option.group.toLowerCase().includes(search.toLowerCase()))
+    );
+
+    // Group options
+    const groupedOptions = filteredOptions.reduce((acc, option) => {
+        const group = option.group || 'Other';
+        if (!acc[group]) acc[group] = [];
+        acc[group].push(option);
+        return acc;
+    }, {} as Record<string, typeof options>);
+
+    return (
+        <div className={`relative ${className}`} ref={containerRef}>
+            <button
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                className={`input w-full flex justify-between items-center text-left ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                disabled={disabled}
+            >
+                <span className="truncate">{selectedOption?.label || 'Select...'}</span>
+                <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto flex flex-col">
+                    <div className="p-2 sticky top-0 bg-gray-800 border-b border-gray-700">
+                        <div className="relative">
+                            <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                ref={inputRef}
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                className="input w-full pl-8 py-1 text-sm"
+                                placeholder="Search..."
+                                onClick={e => e.stopPropagation()}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="overflow-y-auto flex-1">
+                        {Object.entries(groupedOptions).map(([group, groupOptions]) => (
+                            <div key={group}>
+                                {group !== 'Other' && (
+                                    <div className="px-3 py-1 text-xs font-semibold text-gray-500 bg-gray-900/50 uppercase tracking-wider">
+                                        {group}
+                                    </div>
+                                )}
+                                {groupOptions.map(option => (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => {
+                                            onChange(option.value);
+                                            setIsOpen(false);
+                                            setSearch('');
+                                        }}
+                                        className={`w-full text-left px-3 py-2 hover:bg-gray-700 flex items-center justify-between ${option.value === value ? 'bg-gray-700/50 text-blue-400' : ''}`}
+                                    >
+                                        <span>{option.label}</span>
+                                        {option.value === value && <Check size={14} />}
+                                    </button>
+                                ))}
+                            </div>
+                        ))}
+                        {filteredOptions.length === 0 && (
+                            <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                                No options found
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const ImportPreview: React.FC<ImportPreviewProps> = ({
     importData,
@@ -214,24 +384,19 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                                             </div>
                                         )}
                                     </div>
-                                    <select
-                                        className="input text-sm min-w-[160px]"
+                                    <CustomSelect
+                                        className="min-w-[200px]"
                                         value={conflict.action}
-                                        onChange={e => updateRecipeAction(idx, e.target.value as any)}
-                                    >
-                                        {conflict.existingRecipe ? (
-                                            <>
-                                                <option value="skip">Skip (keep existing)</option>
-                                                <option value="add">Add as duplicate</option>
-                                                <option value="replace">Replace existing</option>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <option value="add">Import</option>
-                                                <option value="skip">Skip</option>
-                                            </>
-                                        )}
-                                    </select>
+                                        onChange={val => updateRecipeAction(idx, val as any)}
+                                        options={conflict.existingRecipe ? [
+                                            { value: 'skip', label: 'Skip', description: 'Keep existing recipe' },
+                                            { value: 'add', label: 'Add as duplicate', description: 'Import anyway' },
+                                            { value: 'replace', label: 'Replace existing', description: 'Overwrite existing' }
+                                        ] : [
+                                            { value: 'add', label: 'Import' },
+                                            { value: 'skip', label: 'Skip' }
+                                        ]}
+                                    />
                                 </div>
                             </div>
                         ))}
@@ -248,6 +413,19 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                         {ingredientMappings.map((mapping, idx) => {
                             const recipesUsing = getRecipesUsingIngredient(mapping.importedIngredient.name);
                             const canSkip = canSkipIngredient(mapping.importedIngredient.name);
+
+                            // Build options for combobox
+                            const options = [
+                                { value: 'create', label: 'Create new', group: 'Actions' },
+                                ...(canSkip ? [{ value: 'skip', label: 'Skip', group: 'Actions' }] : []),
+                                ...existingIngredients.map(ing => ({
+                                    value: ing.id,
+                                    label: `${ing.name} (${ing.category})`,
+                                    group: 'Map to existing'
+                                }))
+                            ];
+
+                            const currentValue = mapping.action === 'skip' ? 'skip' : (mapping.mapToId || 'create');
 
                             return (
                                 <div key={idx} className="card p-3 bg-gray-800">
@@ -270,11 +448,10 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                                                 </div>
                                             )}
                                         </div>
-                                        <select
-                                            className="input text-sm min-w-[180px]"
-                                            value={mapping.action === 'skip' ? 'skip' : (mapping.mapToId || 'create')}
-                                            onChange={e => {
-                                                const value = e.target.value;
+                                        <Combobox
+                                            className="min-w-[220px]"
+                                            value={currentValue}
+                                            onChange={value => {
                                                 if (value === 'create') {
                                                     updateIngredientMapping(idx, 'create');
                                                 } else if (value === 'skip') {
@@ -285,18 +462,9 @@ export const ImportPreview: React.FC<ImportPreviewProps> = ({
                                                     updateIngredientMapping(idx, 'map', value);
                                                 }
                                             }}
+                                            options={options}
                                             disabled={!canSkip && mapping.action === 'skip'}
-                                        >
-                                            <option value="create">Create new</option>
-                                            {canSkip && <option value="skip">Skip</option>}
-                                            <optgroup label="Map to existing">
-                                                {existingIngredients.map(ing => (
-                                                    <option key={ing.id} value={ing.id}>
-                                                        {ing.name} ({ing.category})
-                                                    </option>
-                                                ))}
-                                            </optgroup>
-                                        </select>
+                                        />
                                     </div>
                                 </div>
                             );

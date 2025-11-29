@@ -9,9 +9,11 @@ interface DataContextType {
     updateRecipe: (recipe: Recipe) => void;
     deleteRecipe: (id: string) => void;
     addMealPlan: (mealPlan: MealPlan) => void;
+    updateMealPlan: (mealPlan: MealPlan) => void;
     deleteMealPlan: (id: string) => void;
     exportData: () => void;
     importData: (file: File) => Promise<void>;
+    togglePlanFavorite: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -69,8 +71,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setMealPlans(prev => [plan, ...prev]);
     };
 
+    const updateMealPlan = (updated: MealPlan) => {
+        setMealPlans(prev => prev.map(p => p.id === updated.id ? updated : p));
+    };
+
     const deleteMealPlan = (id: string) => {
         setMealPlans(prev => prev.filter(p => p.id !== id));
+    };
+
+    const togglePlanFavorite = (id: string) => {
+        setMealPlans(prev => prev.map(p =>
+            p.id === id ? { ...p, isFavorite: !p.isFavorite } : p
+        ));
     };
 
     const exportData = () => {
@@ -113,8 +125,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         <DataContext.Provider value={{
             recipes, mealPlans,
             addRecipe, updateRecipe, deleteRecipe,
-            addMealPlan, deleteMealPlan,
-            exportData, importData
+            addMealPlan, updateMealPlan, deleteMealPlan,
+            exportData, importData, togglePlanFavorite
         }}>
             {children}
         </DataContext.Provider>

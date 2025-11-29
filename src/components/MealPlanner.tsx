@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { generateMealPlan } from '../utils/planner';
-import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays } from 'lucide-react';
+import { scaleRecipe } from '../utils/recipeScaling';
+import { Calendar, Trash2, ShoppingCart, Leaf, Repeat, CalendarDays, Users } from 'lucide-react';
 
 export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> = ({ onSelectPlan }) => {
-    const { recipes, mealPlans, addMealPlan, deleteMealPlan } = useData();
+    const { recipes, mealPlans, addMealPlan, deleteMealPlan, updateMealPlan } = useData();
     const [days, setDays] = useState(7);
     const [optimizeWaste, setOptimizeWaste] = useState(false);
     const [allowRepeats, setAllowRepeats] = useState(false);
@@ -21,6 +22,20 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
             recentRecipes: mealPlans.slice(0, 3).flatMap(p => p.recipes.map(r => r.id))
         });
         addMealPlan(plan);
+    };
+
+    const handleUpdateServings = (planId: string, recipeIndex: number, newServings: number) => {
+        const plan = mealPlans.find(p => p.id === planId);
+        if (!plan) return;
+
+        const newRecipes = [...plan.recipes];
+        const recipe = newRecipes[recipeIndex];
+        newRecipes[recipeIndex] = scaleRecipe(recipe, newServings);
+
+        updateMealPlan({
+            ...plan,
+            recipes: newRecipes
+        });
     };
 
     return (
@@ -141,13 +156,26 @@ export const MealPlanner: React.FC<{ onSelectPlan: (planId: string) => void }> =
                                     </button>
                                 </div>
 
-                                <div className="flex-1 overflow-auto max-h-40 space-y-1">
+                                <div className="flex-1 overflow-auto max-h-40 space-y-2">
                                     {plan.recipes.map((r, idx) => (
-                                        <div key={idx} className="text-sm border-b border-gray-700 py-1 last:border-0 flex justify-between">
-                                            <span>
+                                        <div key={idx} className="text-sm border-b border-gray-700 py-2 last:border-0 flex justify-between items-center group">
+                                            <span className="flex-1 truncate">
                                                 <span className="font-mono text-gray-500 mr-2">#{idx + 1}</span>
                                                 {r.name}
                                             </span>
+
+                                            <div className="flex items-center gap-1 text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                                                <Users size={12} />
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="20"
+                                                    className="w-8 bg-transparent text-center focus:outline-none focus:text-white"
+                                                    value={r.servings}
+                                                    onChange={(e) => handleUpdateServings(plan.id, idx, parseInt(e.target.value) || 1)}
+                                                />
+                                                <span>servings</span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

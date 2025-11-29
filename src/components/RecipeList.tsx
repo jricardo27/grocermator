@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import type { Recipe, Ingredient } from '../types';
 import { Plus, Trash2, Edit2, Save, X, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import { getSeasonalBadge } from '../utils/seasonal';
+import { getUnitCategories, isValidUnit } from '../utils/units';
 
 export const RecipeList: React.FC = () => {
     const { recipes, addRecipe, updateRecipe, deleteRecipe } = useData();
@@ -127,6 +128,7 @@ interface RecipeFormProps {
 
 const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCancel }) => {
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const unitCategories = getUnitCategories();
 
     const addIngredient = () => {
         onChange({
@@ -196,12 +198,25 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
                             onChange={e => updateIngredient(idx, 'quantity', parseFloat(e.target.value) || 0)}
                             placeholder="Qty"
                         />
-                        <input
-                            className="input w-20"
-                            value={ing.unit}
-                            onChange={e => updateIngredient(idx, 'unit', e.target.value)}
-                            placeholder="Unit"
-                        />
+
+                        <div className="relative w-24">
+                            <select
+                                className="input w-full appearance-none pr-6 text-sm"
+                                value={ing.unit}
+                                onChange={e => updateIngredient(idx, 'unit', e.target.value)}
+                            >
+                                {Object.entries(unitCategories).map(([category, units]) => (
+                                    <optgroup key={category} label={category}>
+                                        {units.map(u => (
+                                            <option key={u} value={u}>{u}</option>
+                                        ))}
+                                    </optgroup>
+                                ))}
+                                {!isValidUnit(ing.unit) && <option value={ing.unit}>{ing.unit}</option>}
+                            </select>
+                            <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+
                         <input
                             className="input flex-1"
                             value={ing.name}
@@ -260,8 +275,8 @@ const RecipeForm: React.FC<RecipeFormProps> = ({ recipe, onChange, onSave, onCan
                                                 });
                                             }}
                                             className={`px-3 py-1 rounded-full text-xs border transition-colors ${isSelected
-                                                ? 'bg-blue-600 border-blue-600 text-white'
-                                                : 'border-gray-600 text-gray-400 hover:border-gray-400'
+                                                    ? 'bg-blue-600 border-blue-600 text-white'
+                                                    : 'border-gray-600 text-gray-400 hover:border-gray-400'
                                                 }`}
                                         >
                                             {season}

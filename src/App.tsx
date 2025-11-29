@@ -100,7 +100,7 @@ const AppContent: React.FC = () => {
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
-              accept=".json"
+              accept=".json,.grocermator"
             />
           </div>
         </div>
